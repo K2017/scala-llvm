@@ -1,8 +1,9 @@
 package org.llvm
 
-import org.scalatest.{BeforeAndAfter, FunSuite}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.BeforeAndAfter
 
-class ModuleTest extends FunSuite with BeforeAndAfter {
+class ModuleTest extends AnyFunSuite with BeforeAndAfter {
   implicit var context: Context = null
   implicit var module: Module = null
 
@@ -61,7 +62,7 @@ class ModuleTest extends FunSuite with BeforeAndAfter {
     assert(testStruct1 !== testStruct2)
 
     // Test packed structs
-    val packedStruct1 = module.createStruct("packedStruct1", Seq(i32, float), true)
+    val packedStruct1 = module.createStruct("packedStruct1", Seq(i32, float), packed = true)
     val globalVar2 = module.addGlobalVariable(packedStruct1, "globalVar2")
     assert(module.toString.contains("%packedStruct1 = type <{ i32, float }>"))
 

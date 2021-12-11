@@ -1,31 +1,18 @@
 package org.llvm
 
-import reflect.runtime.universe.{TypeTag, typeTag}
 import com.sun.jna.ptr.PointerByReference
+
+import scala.language.implicitConversions
 
 class Module(val llvmModule: api.Module) extends LLVMObjectWrapper with Disposable {
   val llvmObject: api.GenericObject = llvmModule
   implicit lazy val context: Context = Context.resolveContext(api.LLVMGetModuleContext(this))
 
-  protected def doDispose() = api.LLVMDisposeModule(this)
-
-  override def toString = {
+  override def toString: String = {
     val ptr = api.LLVMPrintModuleToString(this)
     val str = ptr.getString(0)
     api.LLVMDisposeMessage(ptr)
     str
-  }
-
-  def verify(errorsToStdout: Boolean = false): Option[String] = {
-    val errorStrRef = new PointerByReference()
-    api.LLVMVerifyModule(this, if (errorsToStdout) 1 else 2, errorStrRef) match {
-      case 1 => {
-        val errorStr = errorStrRef.getValue.getString(0)
-        api.LLVMDisposeMessage(errorStrRef.getValue)
-        Some(errorStr)
-      }
-      case _ => None
-    }
   }
 
   def compile(optimizationLevel: Int = 3, doVerify: Boolean = true): Engine = {
@@ -43,9 +30,23 @@ class Module(val llvmModule: api.Module) extends LLVMObjectWrapper with Disposab
     }
   }
 
-  def createStruct(name: String, elementTypes: Seq[Type], packed: Boolean=false): StructType = {
+  def verify(errorsToStdout: Boolean = false): Option[String] = {
+    val errorStrRef = new PointerByReference()
+    api.LLVMVerifyModule(this, if (errorsToStdout) 1 else 2, errorStrRef) match {
+      case 1 => {
+        val errorStr = errorStrRef.getValue.getString(0)
+        api.LLVMDisposeMessage(errorStrRef.getValue)
+        Some(errorStr)
+      }
+      case _ => None
+    }
+  }
+
+  def createStruct(name: String, elementTypes: Seq[Type], packed: Boolean = false): StructType = {
     val llvmType: api.Type = {
-      val typesArray = elementTypes.toArray.map { _.llvmType }
+      val typesArray = elementTypes.toArray.map {
+        _.llvmType
+      }
       val struct = api.LLVMStructCreateNamed(context, name)
       api.LLVMStructSetBody(struct, typesArray, typesArray.length, packed)
       struct
@@ -54,6 +55,8 @@ class Module(val llvmModule: api.Module) extends LLVMObjectWrapper with Disposab
   }
 
   def addGlobalVariable(typ: Type, name: String) = new GlobalVariable(api.LLVMAddGlobal(this, typ, name))(this)
+
+  protected def doDispose(): Unit = api.LLVMDisposeModule(this)
 
   //private val typeMap: Map[api.Type, Type] = Map.empty
 }

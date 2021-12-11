@@ -6,7 +6,7 @@ import com.sun.jna.Pointer
 case class InvalidNativeFunctionInvocation(what: String) extends LLVMException(what)
 
 case class CompiledFunction(function: Function, fptr: Pointer, engine: Engine) {
-  val nativeFunction = JNAFunction.getFunction(fptr)
+  val nativeFunction: JNAFunction = JNAFunction.getFunction(fptr)
 
   def apply(args: Any*): Any = {
     if (args.length != function.paramsTypes.length)

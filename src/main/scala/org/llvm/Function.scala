@@ -22,9 +22,9 @@ class Function(val llvmValue: api.Value)(implicit val module: Module) extends Va
   // For some reason, LLVM returns the function type as a pointer to the function
   // type instead of the function type directly
   lazy val functionType: FunctionType = getType.asInstanceOf[PointerType].pointedType.asInstanceOf[FunctionType]
-  lazy val returnType = functionType.returnType
-  lazy val paramsTypes = functionType.paramsTypes
-  lazy val params: Array[Value] = (0 until paramsTypes.length).map(i => new SSAValue(api.LLVMGetParam(this, i))).toArray
+  lazy val returnType: Type = functionType.returnType
+  lazy val paramsTypes: Array[Type] = functionType.paramsTypes
+  lazy val params: Array[Value] = paramsTypes.indices.map(i => new SSAValue(api.LLVMGetParam(this, i))).toArray
 
   def appendBasicBlock(name: String): BasicBlock = BasicBlock(api.LLVMAppendBasicBlockInContext(module.context, this, name))
 
@@ -36,7 +36,7 @@ class Function(val llvmValue: api.Value)(implicit val module: Module) extends Va
     builder.dispose()
     this
   }
-  def := = build _
+  def := : (Builder => Unit) => Function.this.type = build
 }
 
 object Function {

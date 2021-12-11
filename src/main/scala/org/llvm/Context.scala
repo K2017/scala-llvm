@@ -1,18 +1,20 @@
 package org.llvm
 
-import collection.mutable.Map
+import scala.collection.mutable
+import scala.language.implicitConversions
 
 case class InvalidContextException(what: String) extends LLVMException(what)
 
 class Context(val llvmContext: api.Context) extends LLVMObjectWrapper with Disposable {
   val llvmObject: api.GenericObject = llvmContext
+  /** Basic types */
+  val context: Context = this
+  private[llvm] val typeMap: mutable.Map[api.Type, Type] = mutable.Map.empty[api.Type, Type]
 
-  def doDispose() = {
+  def doDispose(): Unit = {
     api.LLVMContextDispose(this)
     Context.unregisterContext(this)
   }
-
-  private[llvm] val typeMap: Map[api.Type, Type] = Map.empty[api.Type, Type]
 
   def resolveType(theType: api.Type): Type = {
     typeMap.getOrElseUpdate(theType, {
@@ -25,16 +27,13 @@ class Context(val llvmContext: api.Context) extends LLVMObjectWrapper with Dispo
         case api.LLVMPointerTypeKind => new PointerType(theType)
         case api.LLVMStructTypeKind => new StructType(theType)
         case api.LLVMFunctionTypeKind => new FunctionType(theType)
-        case _ => {
+        case _ =>
           val unknownType = new UnknownType(theType)
           throw new UnsupportedTypeException(s"Cannot resolve type '$unknownType' in context")
-        }
       }
     })
   }
 
-  /** Basic types */
-  val context = this
   object Types {
     lazy val void: VoidType = resolveType(api.LLVMVoidTypeInContext(context)).asInstanceOf[VoidType]
     lazy val i32: Int32Type = resolveType(api.LLVMInt32TypeInContext(context)).asInstanceOf[Int32Type]
@@ -45,7 +44,7 @@ class Context(val llvmContext: api.Context) extends LLVMObjectWrapper with Dispo
 object Context {
   implicit def contextToLLVM(context: Context): api.Context = context.llvmContext
 
-  val contexts: Map[api.Context, Context] = Map.empty
+  val contexts: mutable.Map[api.Context, Context] = mutable.Map.empty
 
   def create(): Context = {
     val context = new Context(api.LLVMContextCreate())
@@ -53,12 +52,14 @@ object Context {
     context
   }
 
-  private def unregisterContext(context: Context): Unit = { contexts -= context.llvmContext }
-
   def resolveContext(context: api.Context): Context = {
     contexts.getOrElse(context, {
       throw InvalidContextException("Could not resolve context")
     })
+  }
+
+  private def unregisterContext(context: Context): Unit = {
+    contexts -= context.llvmContext
   }
 }
 

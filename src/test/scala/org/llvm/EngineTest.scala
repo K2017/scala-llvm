@@ -1,8 +1,9 @@
 package org.llvm
 
-import org.scalatest.{FunSuite, BeforeAndAfter}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.BeforeAndAfter
 
-class EngineTest extends FunSuite with BeforeAndAfter {
+class EngineTest extends AnyFunSuite with BeforeAndAfter {
   implicit var context: Context = null
   implicit var module: Module = null
   implicit var engine: Engine = null

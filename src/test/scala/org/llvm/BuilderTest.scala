@@ -1,8 +1,10 @@
 package org.llvm
 
-import org.scalatest.{BeforeAndAfter, FunSuite}
+import org.scalatest.BeforeAndAfter
+import org.scalatest.funsuite.AnyFunSuite
 
-class BuilderTest extends FunSuite with BeforeAndAfter {
+
+class BuilderTest extends AnyFunSuite with BeforeAndAfter {
   implicit var context: Context = null
   implicit var module: Module = null
 

@@ -1,8 +1,8 @@
 package org.llvm
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-class ContextTest extends FunSuite {
+class ContextTest extends AnyFunSuite {
   test("Context can be created and disposed correctly") {
     val context = Context.create()
     assert(Context.contexts.contains(context.llvmContext))

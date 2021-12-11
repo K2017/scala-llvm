@@ -1,15 +1,15 @@
 package org.llvm
 
-import reflect.runtime.universe.{TypeTag, typeTag}
+import scala.language.implicitConversions
 
 class UnsupportedTypeException(what: String) extends LLVMException(what)
 
 abstract class Type(val llvmType: api.Type) extends LLVMObjectWrapper {
   val llvmObject: api.GenericObject = llvmType
 
-  implicit lazy val context = Context.resolveContext(api.LLVMGetTypeContext(this))
+  implicit lazy val context: Context = Context.resolveContext(api.LLVMGetTypeContext(this))
 
-  override def toString = {
+  override def toString: String = {
     val ptr = api.LLVMPrintTypeToString(this)
     val str = ptr.getString(0)
     api.LLVMDisposeMessage(ptr)

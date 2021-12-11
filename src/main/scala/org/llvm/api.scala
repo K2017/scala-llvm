@@ -52,18 +52,18 @@ private[llvm] object api {
 
   // Context
   @native def LLVMContextCreate(): api.Context
-  @native def LLVMContextDispose(context: api.Context)
+  @native def LLVMContextDispose(context: api.Context): Unit
   @native def LLVMGetTypeContext(typ: api.Type): api.Context
 
   // Module
   @native def LLVMModuleCreateWithNameInContext(name: String, context: api.Context): api.Module
-  @native def LLVMDumpModule(module: api.Module)
-  @native def LLVMDisposeModule(module: api.Module)
+  @native def LLVMDumpModule(module: api.Module): Unit
+  @native def LLVMDisposeModule(module: api.Module): Unit
   // Don't call this -- call tools.LLVMToolsCompileModuleWithMCJIT instead
   //@native def LLVMCreateExecutionEngineForModule(engineRef: PointerByReference, module: api.Module, errorRef: PointerByReference): Int
   @native def LLVMVerifyModule(module: api.Module, action: Int, errorRef: PointerByReference): Int
   @native def LLVMPrintModuleToString(module: api.Module): Pointer
-  @native def LLVMDisposeExecutionEngine(engine: api.ExecutionEngine)
+  @native def LLVMDisposeExecutionEngine(engine: api.ExecutionEngine): Unit
   @native def LLVMAddGlobal(module: api.Module, typ: api.Type, name: String): api.Value
   @native def LLVMGetModuleContext(module: api.Module): api.Context
 
@@ -72,27 +72,27 @@ private[llvm] object api {
   @native def LLVMBuildRet(builder: api.Builder, value: api.Value): api.Value
   @native def LLVMBuildAdd(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
   @native def LLVMBuildFAdd(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
-  @native def LLVMDisposeBuilder(builder: api.Builder)
+  @native def LLVMDisposeBuilder(builder: api.Builder): Unit
   @native def LLVMBuildICmp(builder: api.Builder, predicate: Int, lhs: api.Value, rhs: api.Value, name: String): api.Value
   @native def LLVMBuildFCmp(builder: api.Builder, predicate: Int, lhs: api.Value, rhs: api.Value, name: String): api.Value
   @native def LLVMBuildPhi(builder: api.Builder, phiType: api.Type, name: String): api.Value
   @native def LLVMBuildBr(builder: api.Builder, dest: api.BasicBlock): api.Value
-  @native def LLVMBuildCondBr(builder: api.Builder, cond: api.Value, then: api.BasicBlock, otherwise: api.BasicBlock): api.Value
+  @native def LLVMBuildCondBr(builder: api.Builder, cond: api.Value, thn: api.BasicBlock, otherwise: api.BasicBlock): api.Value
   @native def LLVMBuildLoad(builder: api.Builder, pointerVal: api.Value, name: String): api.Value
   @native def LLVMBuildStore(builder: api.Builder, value: api.Value, pointerVal: api.Value): api.Value
   @native def LLVMGetInsertBlock(builder: api.Builder): api.BasicBlock
 
   // Builder actions
   @native def LLVMAppendBasicBlockInContext(context: api.Context, function: api.Value, name: String): api.BasicBlock
-  @native def LLVMPositionBuilderAtEnd(builder: api.Builder, block: api.BasicBlock)
+  @native def LLVMPositionBuilderAtEnd(builder: api.Builder, block: api.BasicBlock): Unit
 
   // Functions
-  def LLVMFunctionType = nonNative.LLVMFunctionType _
+  def LLVMFunctionType: (Type, Array[Type], Int, Integer) => FunctionType = nonNative.LLVMFunctionType
   @native def LLVMAddFunction(module: api.Module, name: String, funcType: api.Type): api.Value
   @native def LLVMGetParam(function: api.Value, index: Int): api.Value
   @native def LLVMGetReturnType(functionType: api.Type): api.Type
   @native def LLVMCountParamTypes(functionType: api.Type): Int
-  def LLVMGetParamTypes = nonNative.LLVMGetParamTypes _
+  def LLVMGetParamTypes: (Type, Array[Type]) => Unit = nonNative.LLVMGetParamTypes
 
   // Types
   @native def LLVMVoidTypeInContext(context: api.Context): api.Type
@@ -112,9 +112,9 @@ private[llvm] object api {
 
   // Structs
   @native def LLVMStructCreateNamed(context: api.Context, name: String): api.Type
-  def LLVMStructSetBody = nonNative.LLVMStructSetBody _
+  def LLVMStructSetBody: (Type, Array[Type], Int, Boolean) => Unit = nonNative.LLVMStructSetBody
   @native def LLVMCountStructElementTypes(struct: api.Type): Int
-  def LLVMGetStructElementTypes = nonNative.LLVMGetStructElementTypes _
+  def LLVMGetStructElementTypes: (Type, Array[Type]) => Unit = nonNative.LLVMGetStructElementTypes
   @native def LLVMGetStructName(struct: api.Type): String
 
   // Constants
@@ -122,7 +122,7 @@ private[llvm] object api {
   @native def LLVMConstReal(realType: api.Type, value: Double): api.Value
 
   // Values
-  @native def LLVMSetValueName(value: api.Value, name: String)
+  @native def LLVMSetValueName(value: api.Value, name: String): Unit
   @native def LLVMPrintValueToString(module: api.Value): Pointer
   @native def LLVMGetValueName(value: api.Value): String
 
@@ -131,21 +131,21 @@ private[llvm] object api {
   @native def LLVMGetBasicBlockParent(block: api.BasicBlock): api.Value
 
   // Misc
-  @native def LLVMDisposeMessage(message: Pointer)
-  def LLVMAddIncoming = nonNative.LLVMAddIncoming _
+  @native def LLVMDisposeMessage(message: Pointer): Unit
+  def LLVMAddIncoming: (Value, Array[Value], Array[BasicBlock], Int) => Unit = nonNative.LLVMAddIncoming
 
   // LLVM tools library, used to overcome some limitations of the C api
   object tools {
     Native.register("LLVMTools")
 
-    @native def LLVMToolsInitializeAll()
+    @native def LLVMToolsInitializeAll(): Unit
     @native def LLVMToolsCompileModuleWithMCJIT(outEngineRef: PointerByReference, module: api.Module, optimizationLevel: Int, errorRef: PointerByReference): Int
     @native def LLVMToolsGetPointerToFunction(engine: api.ExecutionEngine, function: api.Value): Pointer
 
     type InsertPoint = Pointer
     @native def LLVMSaveInsertPoint(builderRef: Builder): InsertPoint
-    @native def LLVMRestoreInsertPoint(builderRef: Builder, ip: InsertPoint)
-    @native def LLVMDisposeInsertPoint(ip: InsertPoint)
+    @native def LLVMRestoreInsertPoint(builderRef: Builder, ip: InsertPoint): Unit
+    @native def LLVMDisposeInsertPoint(ip: InsertPoint): Unit
 
     @native def LLVMToolsExecute_L_L_Function(fptr: Pointer, p1: Long): Long
     @native def LLVMToolsExecute_I_I_Function(fptr: Pointer, p1: Int): Int
@@ -160,12 +160,12 @@ private[llvm] object api {
 
 trait NonNativeApi extends Library {
   def LLVMFunctionType(returnType: api.Type, paramTypes: Array[api.Type], numParams: Int, varArgs: Integer): api.FunctionType
-  def LLVMAddIncoming(phiNode: api.Value, incomingValues: Array[api.Value], incomingBlocks: Array[api.BasicBlock], count: Int)
+  def LLVMAddIncoming(phiNode: api.Value, incomingValues: Array[api.Value], incomingBlocks: Array[api.BasicBlock], count: Int): Unit
 
-  def LLVMStructSetBody(struct: api.Type, elementTypes: Array[api.Type], elementCount: Int, packed: Boolean)
-  def LLVMGetStructElementTypes(structs: api.Type, destTypes: Array[api.Type])
+  def LLVMStructSetBody(struct: api.Type, elementTypes: Array[api.Type], elementCount: Int, packed: Boolean): Unit
+  def LLVMGetStructElementTypes(structs: api.Type, destTypes: Array[api.Type]): Unit
 
-  def LLVMGetParamTypes(functionType: api.Type, destTypes: Array[api.Type])
+  def LLVMGetParamTypes(functionType: api.Type, destTypes: Array[api.Type]): Unit
 
   /*def LLVMDumpModule(module: api.Module)
 
