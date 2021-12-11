@@ -9,6 +9,20 @@ class Builder(implicit val module: Module) extends Disposable {
   private val NO_NAME: String = ""
 
   def add(v1: Value, v2: Value): SSAValue = new SSAValue(api.LLVMBuildAdd(this, v1, v2, NO_NAME))
+  def fadd(v1: Value, v2: Value): SSAValue = new SSAValue(api.LLVMBuildFAdd(this, v1, v2, NO_NAME))
+
+  def sub(v1: Value, v2: Value): SSAValue = new SSAValue(api.LLVMBuildSub(this, v1, v2, NO_NAME))
+  def fsub(v1: Value, v2: Value): SSAValue = new SSAValue(api.LLVMBuildFSub(this, v1, v2, NO_NAME))
+
+  def mul(v1: Value, v2: Value): SSAValue = new SSAValue(api.LLVMBuildMul(this, v1, v2, NO_NAME))
+  def fmul(v1: Value, v2: Value): SSAValue = new SSAValue(api.LLVMBuildFMul(this, v1, v2, NO_NAME))
+
+  def div(v1: Value, v2: Value): SSAValue = new SSAValue(api.LLVMBuildUDiv(this, v1, v2, NO_NAME))
+  def fdiv(v1: Value, v2: Value): SSAValue = new SSAValue(api.LLVMBuildFDiv(this, v1, v2, NO_NAME))
+
+  def and(v1: Value, v2: Value): SSAValue = new SSAValue(api.LLVMBuildAnd(this, v1, v2, NO_NAME))
+  def or(v1: Value, v2: Value): SSAValue = new SSAValue(api.LLVMBuildOr(this, v1, v2, NO_NAME))
+  def not(v1: Value): SSAValue = new SSAValue(api.LLVMBuildNot(this, v1, NO_NAME))
 
   def pushIP(): insertPointStack.type = insertPointStack.push(api.tools.LLVMSaveInsertPoint(this))
 

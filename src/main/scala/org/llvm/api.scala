@@ -14,12 +14,12 @@ private[llvm] object api {
   type BasicBlock = Pointer
   type ExecutionEngine = Pointer
 
-  val libname = "/usr/local/lib/libLLVM-3.6.so"
-  
+  val libname = "LLVM-7"
+
   Native.register(libname)
   // This has the functions that cannot be loaded using the @native method (for example, functions
   // that accept arrays as input parameters)
-  private val nonNative = Native.loadLibrary(libname, classOf[NonNativeApi]).asInstanceOf[NonNativeApi]
+  private val nonNative = Native.load(libname, classOf[NonNativeApi]).asInstanceOf[NonNativeApi]
 
   // Enums
   val LLVMIntEq = 32
@@ -70,8 +70,23 @@ private[llvm] object api {
   // Builder
   @native def LLVMCreateBuilderInContext(context: api.Context): api.Builder
   @native def LLVMBuildRet(builder: api.Builder, value: api.Value): api.Value
+  @native def LLVMBuildRetVoid(builder: api.Builder): api.Value
+
+  // Arithmetic
   @native def LLVMBuildAdd(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
   @native def LLVMBuildFAdd(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
+  @native def LLVMBuildSub(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
+  @native def LLVMBuildFSub(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
+  @native def LLVMBuildMul(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
+  @native def LLVMBuildFMul(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
+  @native def LLVMBuildUDiv(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
+  @native def LLVMBuildSDiv(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
+  @native def LLVMBuildFDiv(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
+  @native def LLVMBuildAnd(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
+  @native def LLVMBuildOr(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
+  @native def LLVMBuildNot(builder: api.Builder, v: api.Value, name: String): api.Value
+  //
+
   @native def LLVMDisposeBuilder(builder: api.Builder): Unit
   @native def LLVMBuildICmp(builder: api.Builder, predicate: Int, lhs: api.Value, rhs: api.Value, name: String): api.Value
   @native def LLVMBuildFCmp(builder: api.Builder, predicate: Int, lhs: api.Value, rhs: api.Value, name: String): api.Value

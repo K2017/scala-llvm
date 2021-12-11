@@ -20,6 +20,12 @@ trait Value extends LLVMObjectWrapper {
 
   /** Same-type sum. Will throw error if values are not of the same type */
   def +(other: Value)(implicit builder: Builder): SSAValue = builder.add(this, other)
+  def -(other: Value)(implicit builder: Builder): SSAValue = builder.sub(this, other)
+  def *(other: Value)(implicit builder: Builder): SSAValue = builder.mul(this, other)
+  def /(other: Value)(implicit builder: Builder): SSAValue = builder.div(this, other)
+  def &&(other: Value)(implicit builder: Builder): SSAValue = builder.and(this, other)
+  def ||(other: Value)(implicit builder: Builder): SSAValue = builder.or(this, other)
+  def unary_!(implicit builder: Builder): SSAValue = builder.not(this)
 
   def setName(name: String): this.type = { api.LLVMSetValueName(this, name); this }
   def as(name: String): this.type = setName(name)
