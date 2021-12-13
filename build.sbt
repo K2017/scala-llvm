@@ -8,7 +8,7 @@ scalaVersion := "2.13.6"
 
 
 libraryDependencies += "org.scala-lang" % "scala-reflect" % "2.13.6"
-libraryDependencies += "net.java.dev.jna" % "jna" % "5.9.0"
+libraryDependencies += "net.java.dev.jna" % "jna" % "5.9.0" % "provided"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.9" % "test"
 
 // Compiles the CPP wrapper library
@@ -25,3 +25,8 @@ Compile / compile := {((Compile / compile).value, sourceDirectory.value, target.
 
     compile
 }}
+
+assemblyJarName := "scala-llvm.jar"
+assemblyCacheOutput := false
+assemblyOutputPath := target.value
+assemblyPackageScala / assembleArtifact := false

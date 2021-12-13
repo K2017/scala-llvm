@@ -40,6 +40,8 @@ class Builder(implicit val module: Module) extends Disposable {
 
   def ret(v: Value): Instruction = new Instruction(api.LLVMBuildRet(this, v))
 
+  def ret(): Instruction = new Instruction(api.LLVMBuildRetVoid(this))
+
   def br(destBlock: BasicBlock): Instruction = new Instruction(api.LLVMBuildBr(this, destBlock))
 
   def condBr(condition: Value, trueBlock: BasicBlock, falseBlock: BasicBlock): Instruction =
