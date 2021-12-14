@@ -56,6 +56,8 @@ class Module(val llvmModule: api.Module) extends LLVMObjectWrapper with Disposab
 
   def addGlobalVariable(typ: Type, name: String) = new GlobalVariable(api.LLVMAddGlobal(this, typ, name))(this)
 
+  def setSourceFile(name: String): Unit = api.LLVMSetSourceFileName(this, name, name.length)
+
   protected def doDispose(): Unit = api.LLVMDisposeModule(this)
 
   //private val typeMap: Map[api.Type, Type] = Map.empty

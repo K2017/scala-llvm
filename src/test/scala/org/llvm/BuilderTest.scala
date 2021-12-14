@@ -36,6 +36,16 @@ class BuilderTest extends AnyFunSuite with BeforeAndAfter {
     val i32 = context.Types.i32
     val void = context.Types.void
 
+    module.setSourceFile("TestFile")
+
+    val strct = module.createStruct("struct", Nil)
+
+    val f2 = Function.create("add1", i32, i32)
+    f2.build {implicit builder =>
+      val param = f2.params(0) as "param"
+      val sum = param + 1
+      builder.ret(sum)
+    }
     val function = Function.create("testFunction", void, i32, i32)
     function.build { implicit builder  =>
       val param = function.params(0) as "param"
@@ -45,13 +55,16 @@ class BuilderTest extends AnyFunSuite with BeforeAndAfter {
         val sum2 = param + 2 as "sum2"
       }
 
+      val cl = builder.call(f2, param) as "cl1"
+
       // sum3 should come before sum1 and sum2
       val sum3 = param + 3 as "sum3"
       builder.br(block1)
     }
 
+
     val functionStr = function.toString
-    println(functionStr)
+    println(module.toString)
     assert(functionStr.contains("%sum1 = add i32 %param, 1"))
     assert(functionStr.contains("%sum3 = add i32 %param, 3"))
     assert(functionStr.indexOf("%sum3 = add i32 %param, 3") < functionStr.indexOf("%sum1 = add i32 %param, 1"))

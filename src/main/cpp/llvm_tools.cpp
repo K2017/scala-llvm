@@ -7,7 +7,13 @@
 #include <iostream>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/IR/IRBuilder.h>
+#include <llvm/Config/llvm-config.h>
 
+
+#if LLVM_VERSION_MAJOR <= 7
+#else
+#include <llvm/Support/TargetSelect.h>
+#endif
 /* ------------------------------------------------------------------------- */
 // Useful templates / macros
 template<typename R, typename P1>
@@ -42,9 +48,14 @@ LLVMBool LLVMToolsCompileModuleWithMCJIT(LLVMExecutionEngineRef *outEngine, LLVM
 /* ------------------------------------------------------------------------- */
 void LLVMToolsInitializeAll()
 {
-    LLVMInitializeNativeTarget();
-    LLVMInitializeNativeAsmPrinter();
-    LLVMLinkInMCJIT();
+    #if LLVM_VERSION_MAJOR <= 7
+        LLVMInitializeNativeTarget();
+        LLVMInitializeNativeAsmPrinter();
+    #else
+        llvm::InitializeNativeTarget();
+        llvm::InitializeNativeTargetAsmPrinter();
+    #endif
+        LLVMLinkInMCJIT();
 }
 
 /* ------------------------------------------------------------------------- */

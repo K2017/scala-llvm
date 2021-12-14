@@ -48,6 +48,9 @@ class Builder(implicit val module: Module) extends Disposable {
     new Instruction(api.LLVMBuildCondBr(this, condition, trueBlock, falseBlock))
 
   def PHI(t: Type): PHINode = new PHINode(api.LLVMBuildPhi(this, t, NO_NAME))
+  def call(fn: Function, args: Value*): Instruction = new Instruction(
+    api.LLVMBuildCall(this, fn, args.map(a => a.llvmValue).toArray, args.length, NO_NAME)
+  )
 
   def getBasicBlockTerminator(block: BasicBlock): Option[Instruction] = api.LLVMGetBasicBlockTerminator(block) match {
     case null => None

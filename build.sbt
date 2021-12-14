@@ -14,8 +14,6 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.9" % "test"
 // Compiles the CPP wrapper library
 Compile / compile := {((Compile / compile).value, sourceDirectory.value, target.value, (Compile / classDirectory).value) match {
   case (compile, srcDir, targetDir, classDir) =>
-    println(targetDir)
-
     val result =
       Process("cmake" :: s"${srcDir.toString}/main/cpp" :: s"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=${classDir.toString}/linux-x86-64" :: Nil, targetDir) #&&
       Process("cmake" :: "--build" :: targetDir.toString :: Nil, targetDir) !
