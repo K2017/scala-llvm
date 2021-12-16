@@ -90,3 +90,4 @@ project/plugins/project/
 *.log
 
 .idea
+.bsp
