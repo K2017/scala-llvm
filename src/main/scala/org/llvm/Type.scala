@@ -41,6 +41,10 @@ class Int32Type(llvmType: api.Type) extends PrimitiveType(llvmType) {
   val primitiveType: Manifest[Int] = manifest[Int]
 }
 
+class Int8Type(llvmType: api.Type) extends PrimitiveType(llvmType) {
+  val primitiveType: Manifest[Char] = manifest[Char]
+}
+
 // You should *not* instantiate this class directly
 private[llvm] class UnknownType(llvmType: api.Type) extends Type(llvmType)
 
