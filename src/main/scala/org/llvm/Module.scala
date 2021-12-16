@@ -2,6 +2,8 @@ package org.llvm
 
 import com.sun.jna.ptr.PointerByReference
 
+import java.nio.charset.StandardCharsets
+import java.nio.file.{Files, Path, Paths}
 import scala.language.implicitConversions
 
 class Module(val llvmModule: api.Module) extends LLVMObjectWrapper with Disposable {
@@ -13,6 +15,10 @@ class Module(val llvmModule: api.Module) extends LLVMObjectWrapper with Disposab
     val str = ptr.getString(0)
     api.LLVMDisposeMessage(ptr)
     str
+  }
+
+  def toFile(name: String): Path = {
+    Files.write(Paths.get(name), toString.getBytes(StandardCharsets.UTF_8))
   }
 
   def compile(optimizationLevel: Int = 3, doVerify: Boolean = true): Engine = {
@@ -59,8 +65,6 @@ class Module(val llvmModule: api.Module) extends LLVMObjectWrapper with Disposab
   def setSourceFile(name: String): Unit = api.LLVMSetSourceFileName(this, name, name.length)
 
   protected def doDispose(): Unit = api.LLVMDisposeModule(this)
-
-  //private val typeMap: Map[api.Type, Type] = Map.empty
 }
 
 object Module {
