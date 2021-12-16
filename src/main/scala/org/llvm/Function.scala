@@ -1,5 +1,7 @@
 package org.llvm
 
+import org.llvm.CallingConventions.CallingConvention
+
 class FunctionType(llvmType: api.Type) extends Type(llvmType) {
   lazy val returnType: Type = Type.resolveLLVMType(api.LLVMGetReturnType(this))
   lazy val paramsTypes: Array[Type] = {
@@ -11,9 +13,9 @@ class FunctionType(llvmType: api.Type) extends Type(llvmType) {
 }
 
 object FunctionType {
-  def create(returnType: Type, paramsTypes: Type*)(implicit module: Module): FunctionType = {
+  def create(returnType: Type, paramsTypes: Type*)(implicit module: Module, variadic: Boolean = false): FunctionType = {
     val llvmArgsTypes: Array[api.Type] = paramsTypes.map(_.llvmType).toArray
-    val llvmFunctionType = api.LLVMFunctionType(returnType, llvmArgsTypes, llvmArgsTypes.length, 0)
+    val llvmFunctionType = api.LLVMFunctionType(returnType, llvmArgsTypes, llvmArgsTypes.length, variadic)
     new FunctionType(llvmFunctionType)
   }
 }
@@ -28,6 +30,8 @@ class Function(val llvmValue: api.Value)(implicit val module: Module) extends Va
 
   def appendBasicBlock(name: String): BasicBlock = BasicBlock(api.LLVMAppendBasicBlockInContext(module.context, this, name))
 
+  def setCallingConvention(conv: CallingConvention): Unit = api.LLVMSetFunctionCallConv(this, conv.id)
+
   def build(bodyBuilder: Builder => Unit): this.type = {
     val builder = new Builder
     val initBlock = this.appendBasicBlock("init")
@@ -37,11 +41,15 @@ class Function(val llvmValue: api.Value)(implicit val module: Module) extends Va
     this
   }
   def := : (Builder => Unit) => Function.this.type = build
+
+  def apply(args: Value*)(implicit builder: Builder): Instruction = {
+    builder.call(this, args: _*)
+  }
 }
 
 object Function {
-  def create(name: String, returnType: Type, paramsTypes: Type*)(implicit module: Module): Function = {
-    val functionType = FunctionType.create(returnType, paramsTypes: _*)
+  def create(name: String, returnType: Type, paramsTypes: Type*)(implicit module: Module, variadic: Boolean = false): Function = {
+    val functionType = FunctionType.create(returnType, paramsTypes: _*)(variadic = variadic, module = module)
     val llvmFunction = api.LLVMAddFunction(module, name, functionType)
     new Function(llvmFunction)
   }
