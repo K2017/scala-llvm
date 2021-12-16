@@ -34,34 +34,43 @@ class BuilderTest extends AnyFunSuite with BeforeAndAfter {
 
   test("Insertion points can be saved") {
     val i32 = context.Types.i32
+    val i8 = context.Types.i8
     val void = context.Types.void
+    val str = context.Types.asciistring
 
     module.setSourceFile("TestFile")
 
-    val strct = module.createStruct("struct", Nil)
-
     val f2 = Function.create("add1", i32, i32)
-    f2.build {implicit builder =>
+    f2 := {implicit builder =>
       val param = f2.params(0) as "param"
       val sum = param + 1
       builder.ret(sum)
     }
+
+    val printf = Function.create("printf", i32, str)(module, variadic = true)
+    printf.setCallingConvention(CallingConventions.C)
+
     val function = Function.create("testFunction", void, i32, i32)
-    function.build { implicit builder  =>
+    function := { implicit builder =>
       val param = function.params(0) as "param"
 
       val block1 = function.appendBasicBlock("block1") {
         val sum1 = param + 1 as "sum1"
         val sum2 = param + 2 as "sum2"
+        builder.ret()
       }
 
-      val cl = builder.call(f2, param) as "cl1"
+      val cl = f2(param) as "cl1"
+      val str = builder.strLit("this is a literal") as "strLit"
+      val fmt = builder.strLit("%s\n") as "fmt"
+      printf(fmt, str)
 
       // sum3 should come before sum1 and sum2
       val sum3 = param + 3 as "sum3"
       builder.br(block1)
     }
 
+    module.verify() map sys.error
 
     val functionStr = function.toString
     println(module.toString)
