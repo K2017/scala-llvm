@@ -72,6 +72,7 @@ private[llvm] object api {
   @native def LLVMAddGlobal(module: api.Module, typ: api.Type, name: String): api.Value
 
   @native def LLVMGetModuleContext(module: api.Module): api.Context
+  @native def LLVMGetGlobalContext(): api.Context
 
   @native def LLVMSetSourceFileName(module: api.Module, name: String, len: Int): Unit
 
@@ -83,6 +84,8 @@ private[llvm] object api {
   @native def LLVMBuildRetVoid(builder: api.Builder): api.Value
 
   def LLVMBuildCall: (api.Builder, api.Value, Array[api.Value], Int, String) => api.Value = nonNative.LLVMBuildCall
+
+  @native def LLVMBuildGlobalStringPtr(builder: api.Builder, s: String, name: String): api.Value
 
   // Arithmetic
   @native def LLVMBuildAdd(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
@@ -134,7 +137,9 @@ private[llvm] object api {
   @native def LLVMPositionBuilderAtEnd(builder: api.Builder, block: api.BasicBlock): Unit
 
   // Functions
-  def LLVMFunctionType: (Type, Array[Type], Int, Integer) => FunctionType = nonNative.LLVMFunctionType
+  def LLVMFunctionType: (Type, Array[Type], Int, Boolean) => FunctionType = nonNative.LLVMFunctionType
+
+  @native def LLVMSetFunctionCallConv(function: api.Value, conv: Int): Unit
 
   @native def LLVMAddFunction(module: api.Module, name: String, funcType: api.Type): api.Value
 
@@ -242,7 +247,7 @@ private[llvm] object api {
 }
 
 trait NonNativeApi extends Library {
-  def LLVMFunctionType(returnType: api.Type, paramTypes: Array[api.Type], numParams: Int, varArgs: Integer): api.FunctionType
+  def LLVMFunctionType(returnType: api.Type, paramTypes: Array[api.Type], numParams: Int, varArgs: Boolean): api.FunctionType
 
   def LLVMAddIncoming(phiNode: api.Value, incomingValues: Array[api.Value], incomingBlocks: Array[api.BasicBlock], count: Int): Unit
 

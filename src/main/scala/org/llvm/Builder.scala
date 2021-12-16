@@ -52,6 +52,8 @@ class Builder(implicit val module: Module) extends Disposable {
     api.LLVMBuildCall(this, fn, args.map(a => a.llvmValue).toArray, args.length, NO_NAME)
   )
 
+  def strLit(str: String): Instruction = new Instruction(api.LLVMBuildGlobalStringPtr(this, str, NO_NAME))
+
   def getBasicBlockTerminator(block: BasicBlock): Option[Instruction] = api.LLVMGetBasicBlockTerminator(block) match {
     case null => None
     case value => Some(new Instruction(value))
