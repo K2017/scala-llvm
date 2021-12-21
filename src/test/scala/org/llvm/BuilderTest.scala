@@ -43,11 +43,11 @@ class BuilderTest extends AnyFunSuite with BeforeAndAfter {
     val f2 = Function.create("add1", i32, i32)
     f2 := {implicit builder =>
       val param = f2.params(0) as "param"
-      val sum = param + 1
+      val sum = param + Value.from(1)
       builder.ret(sum)
     }
 
-    val printf = Function.create("printf", i32, str)(module, variadic = true)
+    val printf = Function.createVariadic("printf", i32, str)
     printf.setCallingConvention(CallingConventions.C)
 
     val function = Function.create("testFunction", void, i32, i32)
@@ -55,8 +55,8 @@ class BuilderTest extends AnyFunSuite with BeforeAndAfter {
       val param = function.params(0) as "param"
 
       val block1 = function.appendBasicBlock("block1") {
-        val sum1 = param + 1 as "sum1"
-        val sum2 = param + 2 as "sum2"
+        val sum1 = param + Value.from(1) as "sum1"
+        val sum2 = param + Value.from(2) as "sum2"
         builder.ret()
       }
 
@@ -66,7 +66,7 @@ class BuilderTest extends AnyFunSuite with BeforeAndAfter {
       printf(fmt, str)
 
       // sum3 should come before sum1 and sum2
-      val sum3 = param + 3 as "sum3"
+      val sum3 = param + Value.from(3) as "sum3"
       builder.br(block1)
     }
 
