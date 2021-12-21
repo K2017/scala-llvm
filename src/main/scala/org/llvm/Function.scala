@@ -34,7 +34,7 @@ class Function(val llvmValue: api.Value)(implicit val module: Module) extends Va
 
   def build(bodyBuilder: Builder => Unit): this.type = {
     val builder = new Builder
-    val initBlock = this.appendBasicBlock("init")
+    val initBlock = this.appendBasicBlock("entry")
     builder.insertAtEndOfBlock(initBlock)
     bodyBuilder(builder)
     builder.dispose()
@@ -48,9 +48,15 @@ class Function(val llvmValue: api.Value)(implicit val module: Module) extends Va
 }
 
 object Function {
-  def create(name: String, returnType: Type, paramsTypes: Type*)(implicit module: Module, variadic: Boolean = false): Function = {
-    val functionType = FunctionType.create(returnType, paramsTypes: _*)(variadic = variadic, module = module)
+  private def _create(name: String, ret: Type, params: Type*)(implicit module: Module, variadic: Boolean): Function ={
+    val functionType = FunctionType.create(ret, params: _*)(variadic = variadic, module = module)
     val llvmFunction = api.LLVMAddFunction(module, name, functionType)
     new Function(llvmFunction)
+  }
+  def create(name: String, returnType: Type, paramsTypes: Type*)(implicit module: Module): Function = {
+    _create(name, returnType, paramsTypes: _*)(module, variadic = false)
+  }
+  def createVariadic(name: String, returnType: Type, paramsTypes: Type*)(implicit module: Module): Function = {
+    _create(name, returnType, paramsTypes: _*)(module, variadic = true)
   }
 }
