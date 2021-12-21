@@ -33,9 +33,13 @@ trait Value extends LLVMObjectWrapper {
 
 object Value {
   implicit def valueToLLVM(value: Value): api.Value = value.llvmValue
-
+  implicit def toBoolean(value: Value): Boolean = {
+    import value.module.context.Types._
+    implicit val module: Module = value.module
+    value.getType == i1 && value == Value.from(true)
+  }
   /** Helper function that casts constants automatically */
-  implicit def from[T](value: T)(implicit module: Module): Value = value match {
+  def from[T](value: T)(implicit module: Module): Value = value match {
     case v: Value => v
     case _ => fromConstant(value)
   }
@@ -45,6 +49,8 @@ object Value {
     value match {
       case v: Int => new Constant(api.LLVMConstInt(i32, v, 0))
       case v: Float => new Constant(api.LLVMConstReal(float, v))
+      case v: Boolean => new Constant(api.LLVMConstInt(i1, if (v) 1 else 0, 0))
+
       case _ => throw new LLVMException(s"Cannot cast value '$value' to LLVM native value")
     }
   }
@@ -56,7 +62,7 @@ abstract class BaseValue(val llvmValue: api.Value, val module: Module) extends V
 trait Variable extends Value {
   def valueType: Type = getType.asInstanceOf[PointerType].pointedType
   def fetchValue(implicit builder: Builder): SSAValue = new SSAValue(api.LLVMBuildLoad(builder, this, ""))(builder.module)
-  def storeValue(v: Value)(implicit builder: Builder): Instruction = new Instruction(api.LLVMBuildStore(builder, v, this))
+  def storeValue(v: Value)(implicit builder: Builder): Instruction = builder.store(this, v)
 }
 
 class Constant(llvmValue: api.Value)(implicit module: Module) extends BaseValue(llvmValue, module)

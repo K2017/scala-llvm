@@ -45,6 +45,10 @@ class Int8Type(llvmType: api.Type) extends PrimitiveType(llvmType) {
   val primitiveType: Manifest[Char] = manifest[Char]
 }
 
+class Int1Type(llvmType: api.Type) extends PrimitiveType(llvmType) {
+  val primitiveType: Manifest[Boolean] = manifest[Boolean]
+}
+
 // You should *not* instantiate this class directly
 private[llvm] class UnknownType(llvmType: api.Type) extends Type(llvmType)
 
@@ -55,6 +59,10 @@ class StructType(llvmType: api.Type) extends Type(llvmType) {
     api.LLVMGetStructElementTypes(this, llvmTypes)
     llvmTypes.map { Type.resolveLLVMType }
   }
+
+  def getElement(ptr: Value, idx: Int)(implicit builder: Builder): Instruction = new Instruction(
+    api.LLVMBuildStructGEP(builder, ptr, idx, Builder.NO_NAME)
+  )(builder.module)
 
   def name: String = api.LLVMGetStructName(this)
 }

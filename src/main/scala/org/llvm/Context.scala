@@ -22,6 +22,7 @@ class Context(val llvmContext: api.Context) extends LLVMObjectWrapper with Dispo
         case api.LLVMIntegerTypeKind => api.LLVMGetIntTypeWidth(theType) match {
           case 32 => new Int32Type(theType)
           case 8 => new Int8Type(theType)
+          case 1 => new Int1Type(theType)
         }
         case api.LLVMVoidTypeKind => new VoidType(theType)
         case api.LLVMFloatTypeKind => new FloatType(theType)
@@ -35,9 +36,11 @@ class Context(val llvmContext: api.Context) extends LLVMObjectWrapper with Dispo
     })
   }
 
+
   object Types {
     lazy val void: VoidType = resolveType(api.LLVMVoidTypeInContext(context)).asInstanceOf[VoidType]
     lazy val i32: Int32Type = resolveType(api.LLVMInt32TypeInContext(context)).asInstanceOf[Int32Type]
+    lazy val i1: Int1Type = resolveType(api.LLVMInt1TypeInContext(context)).asInstanceOf[Int1Type]
     lazy val i8: Int8Type = resolveType(api.LLVMInt8TypeInContext(context)).asInstanceOf[Int8Type]
     lazy val char: Int8Type = this.i8
     lazy val float: FloatType = resolveType(api.LLVMFloatTypeInContext(context)).asInstanceOf[FloatType]
