@@ -3,6 +3,7 @@ package org.llvm
 import scala.language.implicitConversions
 
 case class InvalidModuleException(what: String) extends LLVMException(what)
+case class BitCodeWriterException(what: String) extends LLVMException(what)
 case class EngineCompilationException(what: String) extends LLVMException(what)
 case class InvalidFunctionException(what: String) extends LLVMException(what)
 
