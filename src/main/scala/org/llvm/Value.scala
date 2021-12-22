@@ -1,5 +1,7 @@
 package org.llvm
 
+import org.llvm.Linkage.Linkage
+
 import scala.language.implicitConversions
 
 trait Value extends LLVMObjectWrapper {
@@ -29,6 +31,8 @@ trait Value extends LLVMObjectWrapper {
 
   def setName(name: String): this.type = { api.LLVMSetValueName(this, name); this }
   def as(name: String): this.type = setName(name)
+
+  def setLinkage(linkage: Linkage): Unit = api.LLVMSetLinkage(this, linkage.id)
 }
 
 object Value {
