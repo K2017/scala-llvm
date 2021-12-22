@@ -2,8 +2,6 @@ package org.llvm
 
 import com.sun.jna.ptr.PointerByReference
 
-import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Path, Paths}
 import scala.language.implicitConversions
 
 class Module(val llvmModule: api.Module) extends LLVMObjectWrapper with Disposable {
@@ -17,8 +15,22 @@ class Module(val llvmModule: api.Module) extends LLVMObjectWrapper with Disposab
     str
   }
 
-  def toFile(name: String): Path = {
-    Files.write(Paths.get(name), toString.getBytes(StandardCharsets.UTF_8))
+  def IRtoFile(name: String): Option[String] = {
+    val errorRef = new PointerByReference()
+    api.LLVMPrintModuleToFile(this, name, errorRef) match {
+      case 1 =>
+        val errorStr = errorRef.getValue.getString(0)
+        api.LLVMDisposeMessage(errorRef.getValue)
+        Some(errorStr)
+      case _ => None
+    }
+  }
+
+  def bitCodeToFile(name: String): Unit = {
+    api.LLVMWriteBitcodeToFile(this, name) match {
+      case 0 =>
+      case code => throw BitCodeWriterException(s"BitCode writer returned non-zero exit code: $code")
+    }
   }
 
   def compile(optimizationLevel: Int = 3, doVerify: Boolean = true): Engine = {
