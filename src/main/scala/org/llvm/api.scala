@@ -13,6 +13,7 @@ private[llvm] object api {
   type FunctionType = Pointer
   type BasicBlock = Pointer
   type ExecutionEngine = Pointer
+  type PassManager = Pointer
 
   val libname = "LLVM-7"
 
@@ -57,16 +58,57 @@ private[llvm] object api {
   @native def LLVMModuleCreateWithNameInContext(name: String, context: api.Context): api.Module
   @native def LLVMDumpModule(module: api.Module): Unit
   @native def LLVMDisposeModule(module: api.Module): Unit
-
-  // Don't call this -- call tools.LLVMToolsCompileModuleWithMCJIT instead
-  //@native def LLVMCreateExecutionEngineForModule(engineRef: PointerByReference, module: api.Module, errorRef: PointerByReference): Int
   @native def LLVMVerifyModule(module: api.Module, action: Int, errorRef: PointerByReference): Int
   @native def LLVMPrintModuleToString(module: api.Module): Pointer
+  @native def LLVMPrintModuleToFile(module: api.Module, filename: String, error: PointerByReference): Int
+  @native def LLVMWriteBitcodeToFile(module: api.Module, path: String): Int
   @native def LLVMDisposeExecutionEngine(engine: api.ExecutionEngine): Unit
   @native def LLVMAddGlobal(module: api.Module, typ: api.Type, name: String): api.Value
   @native def LLVMGetModuleContext(module: api.Module): api.Context
   @native def LLVMGetGlobalContext(): api.Context
   @native def LLVMSetSourceFileName(module: api.Module, name: String, len: Int): Unit
+
+  //Pass Manager
+  @native def LLVMCreatePassManager(): api.PassManager
+  @native def LLVMCreateFunctionPassManagerForModule(module: api.Module): api.PassManager
+  @native def LLVMRunPassManager(manager: api.PassManager, module: api.Module): Int
+  @native def LLVMDisposePassManager(manager: api.PassManager): Unit
+
+  // Transformations
+  // Utility Passes
+  @native def LLVMAddPromoteMemoryToRegisterPass(manager: api.PassManager): Unit
+//  @native def LLVMAddAddDiscriminatorsPass(manager: api.PassManager): Unit
+  @native def LLVMAddLowerSwitchPass(manager: api.PassManager): Unit
+
+
+  // Scalar Passes
+  @native def LLVMAddAggressiveDCEPass(manager: api.PassManager): Unit
+//  @native def LLVMAddDCEPass(manager: api.PassManager): Unit
+  @native def LLVMAddBitTrackingDCEPass(manager: api.PassManager): Unit
+  @native def LLVMAddInstructionCombiningPass(manager: api.PassManager): Unit
+  @native def LLVMAddDeadStoreEliminationPass(manager: api.PassManager): Unit
+  @native def LLVMAddMergedLoadStoreMotionPass(manager: api.PassManager): Unit
+  @native def LLVMAddTailCallEliminationPass(manager: api.PassManager): Unit
+  @native def LLVMAddReassociatePass(manager: api.PassManager): Unit
+  @native def LLVMAddSCCPPass(manager: api.PassManager): Unit
+
+  // Interprocedural Passes
+  @native def LLVMAddAlwaysInlinerPass(manager: api.PassManager): Unit
+  @native def LLVMAddArgumentPromotionPass(manager: api.PassManager): Unit
+  @native def LLVMAddCalledValuePropagationPass(manager: api.PassManager): Unit
+  @native def LLVMAddConstantMergePass(manager: api.PassManager): Unit
+  @native def LLVMAddDeadArgEliminationPass(manager: api.PassManager): Unit
+  @native def LLVMAddFunctionAttrsPass(manager: api.PassManager): Unit
+  @native def LLVMAddFunctionInliningPass(manager: api.PassManager): Unit
+  @native def LLVMAddGlobalDCEPass(manager: api.PassManager): Unit
+  @native def LLVMAddGlobalOptimizerPass(manager: api.PassManager): Unit
+  @native def LLVMAddInternalizePass(manager: api.PassManager): Unit
+  @native def LLVMAddIPSCCPPass(manager: api.PassManager): Unit
+//  @native def LLVMAddMergeFunctionsPass(manager: api.PassManager): Unit
+  @native def LLVMAddPruneEHPass(manager: api.PassManager): Unit
+  @native def LLVMAddStripDeadPrototypesPass(manager: api.PassManager): Unit
+  @native def LLVMAddStripSymbolsPass(manager: api.PassManager): Unit
+
 
   // Builder
   @native def LLVMCreateBuilderInContext(context: api.Context): api.Builder
@@ -114,7 +156,9 @@ private[llvm] object api {
   // Functions
   def LLVMFunctionType: (Type, Array[Type], Int, Boolean) => FunctionType = nonNative.LLVMFunctionType
   @native def LLVMSetFunctionCallConv(function: api.Value, conv: Int): Unit
+  @native def LLVMGetFunctionCallConv(function: api.Value): Int
   @native def LLVMAddFunction(module: api.Module, name: String, funcType: api.Type): api.Value
+  @native def LLVMDeleteFunction(func: api.Value): Unit
   @native def LLVMGetParam(function: api.Value, index: Int): api.Value
   @native def LLVMGetReturnType(functionType: api.Type): api.Type
   @native def LLVMCountParamTypes(functionType: api.Type): Int
@@ -152,6 +196,8 @@ private[llvm] object api {
   @native def LLVMSetValueName(value: api.Value, name: String): Unit
   @native def LLVMPrintValueToString(module: api.Value): Pointer
   @native def LLVMGetValueName(value: api.Value): String
+
+  @native def LLVMSetLinkage(value: api.Value, linkage: Int): String
 
   // Basic block
   @native def LLVMGetBasicBlockTerminator(block: api.BasicBlock): api.Value
