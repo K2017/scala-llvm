@@ -1,6 +1,6 @@
 package org.llvm
 
-object CallingConventions extends Enumeration {
+object CallingConvention extends Enumeration {
   type CallingConvention = Value
   /// C - The default llvm calling convention, compatible with C.  This
   /// convention is the only calling convention that supports varargs calls.

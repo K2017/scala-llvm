@@ -48,7 +48,7 @@ class BuilderTest extends AnyFunSuite with BeforeAndAfter {
     }
 
     val printf = Function.createVariadic("printf", i32, str)
-    printf.setCallingConvention(CallingConventions.C)
+    printf.setCallingConvention(CallingConvention.C)
 
     val function = Function.create("testFunction", void, i32, i32)
     function := { implicit builder =>

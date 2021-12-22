@@ -31,6 +31,7 @@ class Function(val llvmValue: api.Value)(implicit val module: Module) extends Va
   def appendBasicBlock(name: String): BasicBlock = BasicBlock(api.LLVMAppendBasicBlockInContext(module.context, this, name))
 
   def setCallingConvention(conv: CallingConvention): Unit = api.LLVMSetFunctionCallConv(this, conv.id)
+  def getCallingConvention: CallingConvention = CallingConvention(api.LLVMGetFunctionCallConv(this))
 
   def build(bodyBuilder: Builder => Unit): this.type = {
     val builder = new Builder
@@ -49,7 +50,7 @@ class Function(val llvmValue: api.Value)(implicit val module: Module) extends Va
 
 object Function {
   private def _create(name: String, ret: Type, params: Type*)(implicit module: Module, variadic: Boolean): Function ={
-    val functionType = FunctionType.create(ret, params: _*)(variadic = variadic, module = module)
+    val functionType = FunctionType.create(ret, params: _*)(module, variadic)
     val llvmFunction = api.LLVMAddFunction(module, name, functionType)
     new Function(llvmFunction)
   }
