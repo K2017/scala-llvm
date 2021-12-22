@@ -1,6 +1,6 @@
 package org.llvm
 
-import org.llvm.CallingConventions.CallingConvention
+import org.llvm.CallingConvention.CallingConvention
 
 class FunctionType(llvmType: api.Type) extends Type(llvmType) {
   lazy val returnType: Type = Type.resolveLLVMType(api.LLVMGetReturnType(this))
@@ -46,6 +46,8 @@ class Function(val llvmValue: api.Value)(implicit val module: Module) extends Va
   def apply(args: Value*)(implicit builder: Builder): Instruction = {
     builder.call(this, args: _*)
   }
+
+  def erase(): Unit = api.LLVMDeleteFunction(this)
 }
 
 object Function {
