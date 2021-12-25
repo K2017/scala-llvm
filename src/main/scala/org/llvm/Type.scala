@@ -60,13 +60,23 @@ class StructType(llvmType: api.Type) extends Type(llvmType) {
     llvmTypes.map { Type.resolveLLVMType }
   }
 
-  def getElement(ptr: Value, idx: Int)(implicit builder: Builder): Instruction = new Instruction(
-    api.LLVMBuildStructGEP(builder, ptr, idx, Builder.NO_NAME)
-  )(builder.module)
-
   def name: String = api.LLVMGetStructName(this)
+}
+
+class PartialStructType(llvmType: api.Type) extends StructType(llvmType) {
+  def setBody(elementTypes: Seq[Type], packed: Boolean = false): StructType = {
+    val typesArray = elementTypes.toArray.map {
+      _.llvmType
+    }
+    api.LLVMStructSetBody(this, typesArray, typesArray.length, packed)
+    this
+  }
 }
 
 class PointerType(llvmType: api.Type) extends Type(llvmType) {
   lazy val pointedType: Type = Type.resolveLLVMType(api.LLVMGetElementType(this))
+}
+
+class ArrayType(llvmType: api.Type) extends Type(llvmType) {
+
 }
