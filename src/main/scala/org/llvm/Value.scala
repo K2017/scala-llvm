@@ -1,6 +1,7 @@
 package org.llvm
 
 import org.llvm.Linkage.Linkage
+import org.llvm.Visibility.Visibility
 
 import scala.language.implicitConversions
 
@@ -20,6 +21,13 @@ trait Value extends LLVMObjectWrapper {
   def getType: Type = Type.resolveLLVMType(api.LLVMTypeOf(this))
   def name: String = api.LLVMGetValueName(this)
 
+  def <(other: Value)(implicit builder: Builder): SSAValue = builder.icmp(this, other, IntPredicate.SLT)
+  def <=(other: Value)(implicit builder: Builder): SSAValue = builder.icmp(this, other, IntPredicate.SLE)
+  def >(other: Value)(implicit builder: Builder): SSAValue = builder.icmp(this, other, IntPredicate.SGT)
+  def >=(other: Value)(implicit builder: Builder): SSAValue = builder.icmp(this, other, IntPredicate.SGE)
+  def ==(other: Value)(implicit builder: Builder): SSAValue = builder.icmp(this, other, IntPredicate.EQ)
+  def !=(other: Value)(implicit builder: Builder): SSAValue = builder.icmp(this, other, IntPredicate.NE)
+
   /** Same-type sum. Will throw error if values are not of the same type */
   def +(other: Value)(implicit builder: Builder): SSAValue = builder.add(this, other)
   def -(other: Value)(implicit builder: Builder): SSAValue = builder.sub(this, other)
@@ -33,6 +41,7 @@ trait Value extends LLVMObjectWrapper {
   def as(name: String): this.type = setName(name)
 
   def setLinkage(linkage: Linkage): Unit = api.LLVMSetLinkage(this, linkage.id)
+  def setVisibility(visibility: Visibility): Unit = api.LLVMSetVisibility(this, visibility.id)
 }
 
 object Value {
