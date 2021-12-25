@@ -1,4 +1,6 @@
 package org.llvm
+import com.sun.jna
+import com.sun.jna.{Memory, Pointer}
 import org.llvm.api.GenericObject
 
 import scala.language.implicitConversions
@@ -19,8 +21,26 @@ class PassManager(val llvmPassManager: api.PassManager) extends LLVMObjectWrappe
   def addConstantMergePass(): Unit = api.LLVMAddConstantMergePass(this)
   def addReassociatePass(): Unit = api.LLVMAddReassociatePass(this)
   def addSCCPPass(): Unit = api.LLVMAddSCCPPass(this)
+  def addNewGVNPass(): Unit = api.LLVMAddNewGVNPass(this)
+  @deprecated("Use addNewGVNPass for up-to-date GVN pass")
+  def addGVNPass(): Unit = api.LLVMAddGVNPass(this)
+  def addCFGSimplificationPass(): Unit = api.LLVMAddCFGSimplificationPass(this)
+  def addFunctionAttrsPass(): Unit = api.LLVMAddFunctionAttrsPass(this)
+  def addAlignmentFromAssumptionsPass(): Unit = api.LLVMAddAlignmentFromAssumptionsPass(this)
+  def addTypeBasedAliasAnalysisPass(): Unit = api.LLVMAddTypeBasedAliasAnalysisPass(this)
 
   def runPreparedPasses(module: Module): Int = api.LLVMRunPassManager(this, module)
+
+  def runNewPasses(module: Module, passes: String): Option[String] = {
+    val opts = api.LLVMCreatePassBuilderOptions()
+    api.LLVMRunPasses(module, passes, Pointer.NULL, opts) match {
+      case Pointer.NULL => None
+      case err =>
+        val errStr = api.LLVMGetErrorMessage(err)
+        api.LLVMDisposeMessage(errStr)
+        Some(errStr.getString(0))
+    }
+  }
 
   override protected def doDispose(): Unit = api.LLVMDisposePassManager(this)
 }
