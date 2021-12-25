@@ -72,7 +72,26 @@ class Module(val llvmModule: api.Module) extends LLVMObjectWrapper with Disposab
     new StructType(llvmType)
   }
 
+  def declareStruct(name: String): PartialStructType = {
+    val llvmType: api.Type = {
+      api.LLVMStructCreateNamed(context, name)
+    }
+    new PartialStructType(llvmType)
+  }
+
+  def createGlobalString(str: String): GlobalVariable = new GlobalVariable(api.LLVMConstStringInContext(this.context, str, str.length, 0))(this)
+  def createGlobalStruct(structType: StructType, initializers: Value*): GlobalVariable = new GlobalVariable(api.LLVMConstNamedStruct(structType, initializers.map(_.llvmValue).toArray, initializers.length))(this)
   def addGlobalVariable(typ: Type, name: String) = new GlobalVariable(api.LLVMAddGlobal(this, typ, name))(this)
+  def setGlobalInitializer(global: GlobalVariable, init: Value): Unit = api.LLVMSetInitializer(global, init)
+  def addGlobalWithInit(init: GlobalVariable, name: String, constant: Boolean = false): GlobalVariable = {
+    val tpe = init.getType
+    val global = addGlobalVariable(tpe, name)
+    setGlobalInitializer(global, init)
+    if (constant) {
+      api.LLVMSetGlobalConstant(global, 1)
+    }
+    global
+  }
 
   def setSourceFile(name: String): Unit = api.LLVMSetSourceFileName(this, name, name.length)
 
