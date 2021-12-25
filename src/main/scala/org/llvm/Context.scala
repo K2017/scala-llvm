@@ -29,6 +29,7 @@ class Context(val llvmContext: api.Context) extends LLVMObjectWrapper with Dispo
         case api.LLVMPointerTypeKind => new PointerType(theType)
         case api.LLVMStructTypeKind => new StructType(theType)
         case api.LLVMFunctionTypeKind => new FunctionType(theType)
+        case api.LLVMArrayTypeKind => new ArrayType(theType)
         case _ =>
           val unknownType = new UnknownType(theType)
           throw new UnsupportedTypeException(s"Cannot resolve type '$unknownType' in context")
