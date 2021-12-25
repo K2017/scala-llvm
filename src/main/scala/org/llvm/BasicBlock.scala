@@ -4,10 +4,10 @@ import scala.language.implicitConversions
 
 case class BasicBlock(llvmBasicBlock: api.BasicBlock) {
   def build(bodyBuilder: => Unit)(implicit builder: Builder): this.type = {
-    builder.pushIP()
+    val previous = builder.currentBlock
     builder.insertAtEndOfBlock(this)
     bodyBuilder
-    builder.popIP()
+    builder.insertAtEndOfBlock(previous)
     this
   }
   def :=(bodyBuilder: => Unit)(implicit builder: Builder) : this.type = build(bodyBuilder)(builder)
