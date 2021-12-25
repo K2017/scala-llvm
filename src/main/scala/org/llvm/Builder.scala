@@ -1,5 +1,7 @@
 package org.llvm
 
+import org.llvm.IntPredicate.IntPredicate
+
 import scala.collection.mutable
 import scala.language.implicitConversions
 
@@ -24,9 +26,9 @@ class Builder(implicit val module: Module) extends Disposable {
   def or(v1: Value, v2: Value): SSAValue = new SSAValue(api.LLVMBuildOr(this, v1, v2, NO_NAME))
   def not(v1: Value): SSAValue = new SSAValue(api.LLVMBuildNot(this, v1, NO_NAME))
 
+  def icmp(v1: Value, v2: Value, pred: IntPredicate): SSAValue = new SSAValue(api.LLVMBuildICmp(this, pred.id, v1, v2, NO_NAME))
 
   def pushIP(): insertPointStack.type = insertPointStack.push(api.tools.LLVMSaveInsertPoint(this))
-
   def popIP(): Unit = {
     val ip: api.tools.InsertPoint = insertPointStack.pop()
     api.tools.LLVMRestoreInsertPoint(this, ip)
@@ -34,38 +36,44 @@ class Builder(implicit val module: Module) extends Disposable {
   }
 
   def insertAtEndOfBlock(block: BasicBlock): Unit = api.LLVMPositionBuilderAtEnd(this, block)
-
   def currentBlock: BasicBlock = BasicBlock(api.LLVMGetInsertBlock(this))
-
   def currentFunction: Function = new Function(api.LLVMGetBasicBlockParent(api.LLVMGetInsertBlock(this)))
 
   def ret(v: Value): Instruction = new Instruction(api.LLVMBuildRet(this, v))
-
   def ret(): Instruction = new Instruction(api.LLVMBuildRetVoid(this))
 
   def br(destBlock: BasicBlock): Instruction = new Instruction(api.LLVMBuildBr(this, destBlock))
-
-  def condBr(condition: Value, trueBlock: BasicBlock, falseBlock: BasicBlock): Instruction =
+  def condBr(condition: Value, trueBlock: BasicBlock, falseBlock: BasicBlock): Instruction = {
     new Instruction(api.LLVMBuildCondBr(this, condition, trueBlock, falseBlock))
+  }
+  def select(cond: Value, thn: Value, otherwise: Value): Instruction = new Instruction(api.LLVMBuildSelect(this, cond, thn, otherwise, NO_NAME))
 
   def PHI(t: Type): PHINode = new PHINode(api.LLVMBuildPhi(this, t, NO_NAME))
-  def call(fn: Function, args: Value*): Instruction = new Instruction(
+  def call(fn: Value, args: Value*): Instruction = new Instruction(
     api.LLVMBuildCall(this, fn, args.map(a => a.llvmValue).toArray, args.length, NO_NAME)
   )
 
-  def alloc(t: Type): Instruction = new Instruction(api.LLVMBuildAlloca(this, t, NO_NAME))
+  def alloc(t: Type): SSAValue = new SSAValue(api.LLVMBuildAlloca(this, t, NO_NAME))
   def malloc(t: Type): Instruction = new Instruction(api.LLVMBuildMalloc(this, t, NO_NAME))
 
   def strLit(str: String): Instruction = new Instruction(api.LLVMBuildGlobalStringPtr(this, str, NO_NAME))
-  def nullLit(strct: StructType): SSAValue = new SSAValue(api.LLVMConstNull(strct))
+  def nullLit(tp: Type): SSAValue = new SSAValue(api.LLVMConstNull(tp))
 
   def store(ptr: Value, v: Value): Instruction = new Instruction(api.LLVMBuildStore(this, v, ptr))
-  def load(ptr: Value): Instruction = new Instruction(api.LLVMBuildLoad(this, ptr, NO_NAME))
+  def load(ptr: Value): SSAValue = new SSAValue(api.LLVMBuildLoad(this, ptr, NO_NAME))
+
+  def bitcast(v: Value, to: Type): SSAValue = new SSAValue(api.LLVMBuildBitCast(this, v, to, NO_NAME))
+  def ptrToInt(v: Value, to: Type): SSAValue = new SSAValue(api.LLVMBuildPtrToInt(this, v, to, NO_NAME))
+  def intToPtr(v: Value, to: Type): SSAValue = new SSAValue(api.LLVMBuildIntToPtr(this, v, to, NO_NAME))
 
   def getBasicBlockTerminator(block: BasicBlock): Option[Instruction] = api.LLVMGetBasicBlockTerminator(block) match {
     case null => None
     case value => Some(new Instruction(value))
   }
+
+  def getElement(ptr: Value, idx: Int): SSAValue = new SSAValue(
+    api.LLVMBuildStructGEP(this, ptr, idx, NO_NAME)
+  )
 
   protected def doDispose(): Unit = api.LLVMDisposeBuilder(this)
 }
