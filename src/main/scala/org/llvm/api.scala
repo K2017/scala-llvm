@@ -14,8 +14,9 @@ private[llvm] object api {
   type BasicBlock = Pointer
   type ExecutionEngine = Pointer
   type PassManager = Pointer
+  type PassBuilderOptions = Pointer
 
-  val libname = "LLVM-7"
+  val libname = "LLVM-13"
 
   Native.register(libname)
   // Enums
@@ -43,6 +44,7 @@ private[llvm] object api {
   val LLVMIntegerTypeKind = 8
   val LLVMFunctionTypeKind = 9
   val LLVMStructTypeKind = 10
+  val LLVMArrayTypeKind = 11
   val LLVMPointerTypeKind = 12
   // This has the functions that cannot be loaded using the @native method (for example, functions
   // that accept arrays as input parameters)
@@ -53,6 +55,10 @@ private[llvm] object api {
   @native def LLVMContextDispose(context: api.Context): Unit
   @native def LLVMGetTypeContext(typ: api.Type): api.Context
   @native def LLVMConstStringInContext(context: api.Context, str: String, len: Int, dontNullTerminate: Int): api.Value
+  def LLVMConstStructInContext: (api.Context, Array[api.Value], Int, Boolean) => api.Value = nonNative.LLVMConstStructInContext
+  def LLVMConstNamedStruct: (api.Type, Array[api.Value], Int) => api.Value = nonNative.LLVMConstNamedStruct
+  @native def LLVMSetInitializer(global: api.Value, init: api.Value): Unit
+  @native def LLVMSetGlobalConstant(global: api.Value, constant: Int): Unit
 
   // Module
   @native def LLVMModuleCreateWithNameInContext(name: String, context: api.Context): api.Module
@@ -68,31 +74,82 @@ private[llvm] object api {
   @native def LLVMGetGlobalContext(): api.Context
   @native def LLVMSetSourceFileName(module: api.Module, name: String, len: Int): Unit
 
-  //Pass Manager
+
+  // Pass Builder
+  @native def LLVMCreatePassBuilderOptions(): api.PassBuilderOptions
+  @native def LLVMDisposePassBuilderOptions(options: api.PassBuilderOptions): Unit
+  @native def LLVMPassBuilderOptionsSetMergeFunctions(options: api.PassBuilderOptions, merge: Int): Unit
+  @native def LLVMPassBuilderOptionsSetVerifyEach(options: api.PassBuilderOptions, verify: Int): Unit
+  @native def LLVMRunPasses(module: api.Module, passes: String, tm: Pointer, options: api.PassBuilderOptions): Pointer
+  @native def LLVMGetErrorMessage(err: Pointer): Pointer
+
+
+
+  // Pass Manager
   @native def LLVMCreatePassManager(): api.PassManager
   @native def LLVMCreateFunctionPassManagerForModule(module: api.Module): api.PassManager
   @native def LLVMRunPassManager(manager: api.PassManager, module: api.Module): Int
   @native def LLVMDisposePassManager(manager: api.PassManager): Unit
 
-  // Transformations
-  // Utility Passes
+  // Transformations {
+
+  //  Utility Passes
   @native def LLVMAddPromoteMemoryToRegisterPass(manager: api.PassManager): Unit
 //  @native def LLVMAddAddDiscriminatorsPass(manager: api.PassManager): Unit
   @native def LLVMAddLowerSwitchPass(manager: api.PassManager): Unit
 
 
-  // Scalar Passes
+  //  Scalar Passes {
   @native def LLVMAddAggressiveDCEPass(manager: api.PassManager): Unit
-//  @native def LLVMAddDCEPass(manager: api.PassManager): Unit
+  @native def LLVMAddAlignmentFromAssumptionsPass(manager: api.PassManager): Unit
+  @native def LLVMAddBasicAliasAnalysisPass(manager: api.PassManager): Unit
   @native def LLVMAddBitTrackingDCEPass(manager: api.PassManager): Unit
-  @native def LLVMAddInstructionCombiningPass(manager: api.PassManager): Unit
+  @native def LLVMAddCFGSimplificationPass(manager: api.PassManager): Unit
+  @native def LLVMAddCorrelatedValuePropagationPass(manager: api.PassManager): Unit
+  //  @native def LLVMAddDCEPass(manager: api.PassManager): Unit
   @native def LLVMAddDeadStoreEliminationPass(manager: api.PassManager): Unit
-  @native def LLVMAddMergedLoadStoreMotionPass(manager: api.PassManager): Unit
-  @native def LLVMAddTailCallEliminationPass(manager: api.PassManager): Unit
-  @native def LLVMAddReassociatePass(manager: api.PassManager): Unit
-  @native def LLVMAddSCCPPass(manager: api.PassManager): Unit
+  @native def LLVMAddDemoteMemoryToRegisterPass(manager: api.PassManager): Unit
+  @native def LLVMAddEarlyCSEMemSSAPass(manager: api.PassManager): Unit
+  @native def LLVMAddEarlyCSEPass(manager: api.PassManager): Unit
+  @native def LLVMAddGVNPass(manager: api.PassManager): Unit
+  @native def LLVMAddIndVarSimplifyPass(manager: api.PassManager): Unit
+  @native def LLVMAddInstructionCombiningPass(manager: api.PassManager): Unit
+//  @native def LLVMAddInstructionSimplifyPass(manager: api.PassManager): Unit
+  @native def LLVMAddJumpThreadingPass(manager: api.PassManager): Unit
 
-  // Interprocedural Passes
+  //    Loop Optimizations {
+  @native def LLVMAddLICMPass(manager: api.PassManager): Unit
+  @native def LLVMAddLoopDeletionPass(manager: api.PassManager): Unit
+  @native def LLVMAddLoopIdiomPass(manager: api.PassManager): Unit
+  @native def LLVMAddLoopRerollPass(manager: api.PassManager): Unit
+  @native def LLVMAddLoopRotatePass(manager: api.PassManager): Unit
+  @native def LLVMAddLoopUnrollAndJamPass(manager: api.PassManager): Unit
+  @native def LLVMAddLoopUnrollPass(manager: api.PassManager): Unit
+  @native def LLVMAddLoopUnswitchPass(manager: api.PassManager): Unit
+  //    } Loop Optimizations
+
+//  @native def LLVMAddLowerAtomicPass(manager: api.PassManager): Unit
+//  @native def LLVMAddLowerConstantIntrinsicsPass(manager: api.PassManager): Unit
+  @native def LLVMAddLowerExpectIntrinsicPass(manager: api.PassManager): Unit
+  @native def LLVMAddMemCpyOptPass(manager: api.PassManager): Unit
+  @native def LLVMAddMergedLoadStoreMotionPass(manager: api.PassManager): Unit
+  @native def LLVMAddNewGVNPass(manager: api.PassManager): Unit
+  @native def LLVMAddPartiallyInlineLibCallsPass(manager: api.PassManager): Unit
+  @native def LLVMAddReassociatePass(manager: api.PassManager): Unit
+  @native def LLVMAddScalarizerPass(manager: api.PassManager): Unit
+  @native def LLVMAddScalarReplAggregatesPass(manager: api.PassManager): Unit
+  @native def LLVMAddScalarReplAggregatesPassSSA(manager: api.PassManager): Unit
+  @native def LLVMAddScalarReplAggregatesPassWithThreshold(manager: api.PassManager, threshold: Int): Unit
+  @native def LLVMAddSCCPPass(manager: api.PassManager): Unit
+  @native def LLVMAddScopedNoAliasAAPass(manager: api.PassManager): Unit
+  @native def LLVMAddSimplifyLibCallsPass(manager: api.PassManager): Unit
+  @native def LLVMAddTailCallEliminationPass(manager: api.PassManager): Unit
+  @native def LLVMAddTypeBasedAliasAnalysisPass(manager: api.PassManager): Unit
+//  @native def LLVMAddUnifyFunctionExitNodesPass(manager: api.PassManager): Unit
+  @native def LLVMAddVerifierPass(manager: api.PassManager): Unit
+  //  } Scalar Passes
+
+  //  Interprocedural Passes {
   @native def LLVMAddAlwaysInlinerPass(manager: api.PassManager): Unit
   @native def LLVMAddArgumentPromotionPass(manager: api.PassManager): Unit
   @native def LLVMAddCalledValuePropagationPass(manager: api.PassManager): Unit
@@ -108,16 +165,19 @@ private[llvm] object api {
   @native def LLVMAddPruneEHPass(manager: api.PassManager): Unit
   @native def LLVMAddStripDeadPrototypesPass(manager: api.PassManager): Unit
   @native def LLVMAddStripSymbolsPass(manager: api.PassManager): Unit
+  //  } Interprocedural Passes
 
+  // } Transformations
 
-  // Builder
+  // Builder {
   @native def LLVMCreateBuilderInContext(context: api.Context): api.Builder
+  @native def LLVMDisposeBuilder(builder: api.Builder): Unit
   @native def LLVMBuildRet(builder: api.Builder, value: api.Value): api.Value
   @native def LLVMBuildRetVoid(builder: api.Builder): api.Value
   def LLVMBuildCall: (api.Builder, api.Value, Array[api.Value], Int, String) => api.Value = nonNative.LLVMBuildCall
   @native def LLVMBuildGlobalStringPtr(builder: api.Builder, s: String, name: String): api.Value
 
-  // Arithmetic
+  //  Arithmetic {
   @native def LLVMBuildAdd(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
   @native def LLVMBuildFAdd(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
   @native def LLVMBuildSub(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
@@ -130,14 +190,14 @@ private[llvm] object api {
   @native def LLVMBuildAnd(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
   @native def LLVMBuildOr(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
   @native def LLVMBuildNot(builder: api.Builder, v: api.Value, name: String): api.Value
-  //
+  //  } Arithmetic
 
-  @native def LLVMDisposeBuilder(builder: api.Builder): Unit
   @native def LLVMBuildICmp(builder: api.Builder, predicate: Int, lhs: api.Value, rhs: api.Value, name: String): api.Value
   @native def LLVMBuildFCmp(builder: api.Builder, predicate: Int, lhs: api.Value, rhs: api.Value, name: String): api.Value
   @native def LLVMBuildPhi(builder: api.Builder, phiType: api.Type, name: String): api.Value
   @native def LLVMBuildBr(builder: api.Builder, dest: api.BasicBlock): api.Value
   @native def LLVMBuildCondBr(builder: api.Builder, cond: api.Value, thn: api.BasicBlock, otherwise: api.BasicBlock): api.Value
+  @native def LLVMBuildSelect(builder: api.Builder, iff: api.Value, thn: api.Value, otherwise: api.Value, name: String): api.Value
   @native def LLVMBuildLoad(builder: api.Builder, pointerVal: api.Value, name: String): api.Value
   @native def LLVMBuildStore(builder: api.Builder, value: api.Value, pointerVal: api.Value): api.Value
   @native def LLVMBuildMalloc(builder: api.Builder, typ: api.Type, name: String): api.Value
@@ -146,12 +206,16 @@ private[llvm] object api {
   @native def LLVMBuildArrayAlloca(builder: api.Builder, typ: api.Type, v: api.Value, name: String): api.Value
   @native def LLVMGetInsertBlock(builder: api.Builder): api.BasicBlock
   @native def LLVMBuildStructGEP(builder: api.Builder, ptr: api.Value, idx: Int, name: String): api.Value
+  @native def LLVMBuildBitCast(builder: api.Builder, v: api.Value, destTyp: api.Type, name: String): api.Value
+  @native def LLVMBuildPtrToInt(builder: api.Builder, v: api.Value, destTyp: api.Type, name: String): api.Value
+  @native def LLVMBuildIntToPtr(builder: api.Builder, v: api.Value, destTyp: api.Type, name: String): api.Value
   def LLVMBuildGEP: (Builder, Type, Value, Array[Value], Int, String) => Value = nonNative.LLVMBuildGEP2
   def LLVMBuildInBoundsGEP: (Builder, Type, Value, Array[Value], Int, String) => Value = nonNative.LLVMBuildInBoundsGEP2
 
-  // Builder actions
+  //  Actions
   @native def LLVMAppendBasicBlockInContext(context: api.Context, function: api.Value, name: String): api.BasicBlock
   @native def LLVMPositionBuilderAtEnd(builder: api.Builder, block: api.BasicBlock): Unit
+  // } Builder
 
   // Functions
   def LLVMFunctionType: (Type, Array[Type], Int, Boolean) => FunctionType = nonNative.LLVMFunctionType
@@ -196,8 +260,8 @@ private[llvm] object api {
   @native def LLVMSetValueName(value: api.Value, name: String): Unit
   @native def LLVMPrintValueToString(module: api.Value): Pointer
   @native def LLVMGetValueName(value: api.Value): String
-
-  @native def LLVMSetLinkage(value: api.Value, linkage: Int): String
+  @native def LLVMSetLinkage(value: api.Value, linkage: Int): Unit
+  @native def LLVMSetVisibility(value: api.Value, vis: Int): Unit
 
   // Basic block
   @native def LLVMGetBasicBlockTerminator(block: api.BasicBlock): api.Value
@@ -239,11 +303,8 @@ trait NonNativeApi extends Library {
   def LLVMGetParamTypes(functionType: api.Type, destTypes: Array[api.Type]): Unit
   def LLVMBuildCall(builder: api.Builder, fn: api.Value, args: Array[api.Value], argCnt: Int, name: String): api.Value
 
+  def LLVMConstStructInContext(context: api.Context, constVals: Array[api.Value], count: Int, packed: Boolean): api.Value
+  def LLVMConstNamedStruct(structTy: api.Type, constVals: Array[api.Value], count: Int): api.Value
   def LLVMBuildGEP2(builder: api.Builder, typ: api.Type, ptr: api.Value, indices: Array[api.Value], numIndices: Int, name: String): api.Value
   def LLVMBuildInBoundsGEP2(builder: api.Builder, typ: api.Type, ptr: api.Value, indices: Array[api.Value], numIndices: Int, name: String): api.Value
-
-  /*def LLVMDumpModule(module: api.Module)
-
-  def LLVMCreateGenericValueOfInt(valType: api.Type, value: Long, isSigned: Int): api.GenericValue
-  def LLVMGenericValueToInt(value: api.GenericValue, isSigned: Int): Long*/
 }
