@@ -1,6 +1,7 @@
 package org.llvm
 
 import com.sun.jna.ptr.PointerByReference
+import org.llvm.Linkage.Linkage
 
 import scala.language.implicitConversions
 
@@ -83,13 +84,14 @@ class Module(val llvmModule: api.Module) extends LLVMObjectWrapper with Disposab
   def createGlobalStruct(structType: StructType, initializers: Value*): GlobalVariable = new GlobalVariable(api.LLVMConstNamedStruct(structType, initializers.map(_.llvmValue).toArray, initializers.length))(this)
   def addGlobalVariable(typ: Type, name: String) = new GlobalVariable(api.LLVMAddGlobal(this, typ, name))(this)
   def setGlobalInitializer(global: GlobalVariable, init: Value): Unit = api.LLVMSetInitializer(global, init)
-  def addGlobalWithInit(init: GlobalVariable, name: String, constant: Boolean = false): GlobalVariable = {
+  def addGlobalWithInit(init: GlobalVariable, name: String, constant: Boolean = false, linkage: Linkage = Linkage.External): GlobalVariable = {
     val tpe = init.getType
     val global = addGlobalVariable(tpe, name)
     setGlobalInitializer(global, init)
     if (constant) {
       api.LLVMSetGlobalConstant(global, 1)
     }
+    global.setLinkage(linkage)
     global
   }
 
