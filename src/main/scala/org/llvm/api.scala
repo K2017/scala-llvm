@@ -204,12 +204,16 @@ private[llvm] object api {
   @native def LLVMBuildArrayMalloc(builder: api.Builder, typ: api.Type, v: api.Value, name: String): api.Value
   @native def LLVMBuildAlloca(builder: api.Builder, typ: api.Type, name: String): api.Value
   @native def LLVMBuildArrayAlloca(builder: api.Builder, typ: api.Type, v: api.Value, name: String): api.Value
+  @native def LLVMBuildFree(builder: api.Builder, ptr: api.Value): api.Value
+  @native def LLVMBuildIsNull(builder: api.Builder, ptr: api.Value, name: String): api.Value
+  @native def LLVMBuildIsNotNull(builder: api.Builder, ptr: api.Value, name: String): api.Value
   @native def LLVMGetInsertBlock(builder: api.Builder): api.BasicBlock
   @native def LLVMBuildStructGEP(builder: api.Builder, ptr: api.Value, idx: Int, name: String): api.Value
   @native def LLVMBuildBitCast(builder: api.Builder, v: api.Value, destTyp: api.Type, name: String): api.Value
   @native def LLVMBuildPtrToInt(builder: api.Builder, v: api.Value, destTyp: api.Type, name: String): api.Value
   @native def LLVMBuildIntToPtr(builder: api.Builder, v: api.Value, destTyp: api.Type, name: String): api.Value
-  def LLVMBuildGEP: (Builder, Type, Value, Array[Value], Int, String) => Value = nonNative.LLVMBuildGEP2
+  def LLVMBuildGEP: (Builder, Value, Array[Value], Int, String) => Value = nonNative.LLVMBuildGEP
+  def LLVMBuildGEP2: (Builder, Type, Value, Array[Value], Int, String) => Value = nonNative.LLVMBuildGEP2
   def LLVMBuildInBoundsGEP: (Builder, Type, Value, Array[Value], Int, String) => Value = nonNative.LLVMBuildInBoundsGEP2
 
   //  Actions
@@ -305,6 +309,7 @@ trait NonNativeApi extends Library {
 
   def LLVMConstStructInContext(context: api.Context, constVals: Array[api.Value], count: Int, packed: Boolean): api.Value
   def LLVMConstNamedStruct(structTy: api.Type, constVals: Array[api.Value], count: Int): api.Value
+  def LLVMBuildGEP(builder: api.Builder, ptr: api.Value, indices: Array[api.Value], numIndices: Int, name: String): api.Value
   def LLVMBuildGEP2(builder: api.Builder, typ: api.Type, ptr: api.Value, indices: Array[api.Value], numIndices: Int, name: String): api.Value
   def LLVMBuildInBoundsGEP2(builder: api.Builder, typ: api.Type, ptr: api.Value, indices: Array[api.Value], numIndices: Int, name: String): api.Value
 }

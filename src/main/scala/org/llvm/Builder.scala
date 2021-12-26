@@ -5,10 +5,11 @@ import org.llvm.IntPredicate.IntPredicate
 import scala.collection.mutable
 import scala.language.implicitConversions
 
-class Builder(implicit val module: Module) extends Disposable {
+class Builder(private implicit val module: Module) extends Disposable {
+  val m: Module = module // non-implicit reference to module
   val llvmBuilder: api.Builder = api.LLVMCreateBuilderInContext(module.context)
   val insertPointStack = new mutable.Stack[api.tools.InsertPoint]
-  private val NO_NAME: String = Builder.NO_NAME
+  private val NO_NAME: String = ""
 
   def add(v1: Value, v2: Value): SSAValue = new SSAValue(api.LLVMBuildAdd(this, v1, v2, NO_NAME))
   def fadd(v1: Value, v2: Value): SSAValue = new SSAValue(api.LLVMBuildFAdd(this, v1, v2, NO_NAME))
@@ -54,7 +55,10 @@ class Builder(implicit val module: Module) extends Disposable {
   )
 
   def alloc(t: Type): SSAValue = new SSAValue(api.LLVMBuildAlloca(this, t, NO_NAME))
-  def malloc(t: Type): Instruction = new Instruction(api.LLVMBuildMalloc(this, t, NO_NAME))
+  def malloc(t: Type): SSAValue = new SSAValue(api.LLVMBuildMalloc(this, t, NO_NAME))
+  def free(ptr: Value): Instruction = new Instruction(api.LLVMBuildFree(this, ptr))
+  def isNull(ptr: Value): SSAValue = new SSAValue(api.LLVMBuildIsNull(this, ptr, NO_NAME))
+  def isNotNull(ptr: Value): SSAValue = new SSAValue(api.LLVMBuildIsNotNull(this, ptr, NO_NAME))
 
   def strLit(str: String): Instruction = new Instruction(api.LLVMBuildGlobalStringPtr(this, str, NO_NAME))
   def nullLit(tp: Type): SSAValue = new SSAValue(api.LLVMConstNull(tp))
@@ -65,6 +69,13 @@ class Builder(implicit val module: Module) extends Disposable {
   def bitcast(v: Value, to: Type): SSAValue = new SSAValue(api.LLVMBuildBitCast(this, v, to, NO_NAME))
   def ptrToInt(v: Value, to: Type): SSAValue = new SSAValue(api.LLVMBuildPtrToInt(this, v, to, NO_NAME))
   def intToPtr(v: Value, to: Type): SSAValue = new SSAValue(api.LLVMBuildIntToPtr(this, v, to, NO_NAME))
+  def sizeof(t: Type): SSAValue = {
+    val tNull = nullLit(t.pointerTo)
+    val size = new SSAValue(
+      api.LLVMBuildGEP2(this, t, tNull, Array(Value.from(1).llvmValue), 1, NO_NAME)
+    )
+    ptrToInt(size, module.context.Types.i32)
+  }
 
   def getBasicBlockTerminator(block: BasicBlock): Option[Instruction] = api.LLVMGetBasicBlockTerminator(block) match {
     case null => None
@@ -79,6 +90,5 @@ class Builder(implicit val module: Module) extends Disposable {
 }
 
 object Builder {
-  val NO_NAME: String = ""
   implicit def builderToLLVM(builder: Builder): api.Builder = builder.llvmBuilder
 }

@@ -74,7 +74,7 @@ abstract class BaseValue(val llvmValue: api.Value, val module: Module) extends V
 
 trait Variable extends Value {
   def valueType: Type = getType.asInstanceOf[PointerType].pointedType
-  def fetchValue(implicit builder: Builder): SSAValue = new SSAValue(api.LLVMBuildLoad(builder, this, ""))(builder.module)
+  def fetchValue(implicit builder: Builder): SSAValue = new SSAValue(api.LLVMBuildLoad(builder, this, ""))(builder.m)
   def storeValue(v: Value)(implicit builder: Builder): Instruction = builder.store(this, v)
 }
 
