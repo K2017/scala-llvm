@@ -39,6 +39,7 @@ trait Value extends LLVMObjectWrapper {
 
   def setName(name: String): this.type = { api.LLVMSetValueName(this, name); this }
   def as(name: String): this.type = setName(name)
+  def as(tpe: Type)(implicit builder: Builder): SSAValue =  builder.bitcast(this, tpe)
 
   def setLinkage(linkage: Linkage): Unit = api.LLVMSetLinkage(this, linkage.id)
   def setVisibility(visibility: Visibility): Unit = api.LLVMSetVisibility(this, visibility.id)
