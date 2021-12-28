@@ -2,7 +2,7 @@ import scala.sys.process.Process
 
 name := "scala-llvm"
 
-version := "1.1"
+version := "1.2"
 
 scalaVersion := "2.13.6"
 
@@ -10,6 +10,7 @@ scalaVersion := "2.13.6"
 libraryDependencies += "org.scala-lang" % "scala-reflect" % "2.13.6"
 libraryDependencies += "net.java.dev.jna" % "jna" % "5.9.0" % "provided"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.9" % "test"
+libraryDependencies += "org.bytedeco" % ("llvm" + "-platform") % ("12.0.1" + "-1.5.6")
 
 // Compiles the CPP wrapper library
 Compile / compile := {((Compile / compile).value, sourceDirectory.value, target.value, (Compile / classDirectory).value) match {
