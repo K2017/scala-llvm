@@ -2,6 +2,8 @@ package org.llvm
 
 import com.sun.jna.ptr.PointerByReference
 import com.sun.jna.{Library, Native, Pointer}
+import dwarf.encoding._
+import org.llvm.dwarf.encoding.Language.Language
 
 private[llvm] object api {
   type GenericObject = Pointer
@@ -15,6 +17,8 @@ private[llvm] object api {
   type ExecutionEngine = Pointer
   type PassManager = Pointer
   type PassBuilderOptions = Pointer
+  type DIBuilder = Pointer
+  type Metadata = Pointer
 
   val libname = "LLVM-13"
 
@@ -170,56 +174,117 @@ private[llvm] object api {
   // } Transformations
 
   // Builder {
-  @native def LLVMCreateBuilderInContext(context: api.Context): api.Builder
-  @native def LLVMDisposeBuilder(builder: api.Builder): Unit
-  @native def LLVMBuildRet(builder: api.Builder, value: api.Value): api.Value
-  @native def LLVMBuildRetVoid(builder: api.Builder): api.Value
-  def LLVMBuildCall: (api.Builder, api.Value, Array[api.Value], Int, String) => api.Value = nonNative.LLVMBuildCall
-  @native def LLVMBuildGlobalStringPtr(builder: api.Builder, s: String, name: String): api.Value
+    @native def LLVMCreateBuilderInContext(context: api.Context): api.Builder
+    @native def LLVMDisposeBuilder(builder: api.Builder): Unit
+    @native def LLVMBuildRet(builder: api.Builder, value: api.Value): api.Value
+    @native def LLVMBuildRetVoid(builder: api.Builder): api.Value
+    def LLVMBuildCall: (api.Builder, api.Value, Array[api.Value], Int, String) => api.Value = nonNative.LLVMBuildCall
+    @native def LLVMBuildGlobalStringPtr(builder: api.Builder, s: String, name: String): api.Value
 
   //  Arithmetic {
-  @native def LLVMBuildAdd(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
-  @native def LLVMBuildFAdd(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
-  @native def LLVMBuildSub(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
-  @native def LLVMBuildFSub(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
-  @native def LLVMBuildMul(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
-  @native def LLVMBuildFMul(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
-  @native def LLVMBuildUDiv(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
-  @native def LLVMBuildSDiv(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
-  @native def LLVMBuildFDiv(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
-  @native def LLVMBuildAnd(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
-  @native def LLVMBuildOr(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
-  @native def LLVMBuildNot(builder: api.Builder, v: api.Value, name: String): api.Value
+      @native def LLVMBuildAdd(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
+      @native def LLVMBuildFAdd(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
+      @native def LLVMBuildSub(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
+      @native def LLVMBuildFSub(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
+      @native def LLVMBuildMul(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
+      @native def LLVMBuildFMul(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
+      @native def LLVMBuildUDiv(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
+      @native def LLVMBuildSDiv(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
+      @native def LLVMBuildFDiv(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
+      @native def LLVMBuildAnd(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
+      @native def LLVMBuildOr(builder: api.Builder, lhs: api.Value, rhs: api.Value, name: String): api.Value
+      @native def LLVMBuildNot(builder: api.Builder, v: api.Value, name: String): api.Value
   //  } Arithmetic
 
-  @native def LLVMBuildICmp(builder: api.Builder, predicate: Int, lhs: api.Value, rhs: api.Value, name: String): api.Value
-  @native def LLVMBuildFCmp(builder: api.Builder, predicate: Int, lhs: api.Value, rhs: api.Value, name: String): api.Value
-  @native def LLVMBuildPhi(builder: api.Builder, phiType: api.Type, name: String): api.Value
-  @native def LLVMBuildBr(builder: api.Builder, dest: api.BasicBlock): api.Value
-  @native def LLVMBuildCondBr(builder: api.Builder, cond: api.Value, thn: api.BasicBlock, otherwise: api.BasicBlock): api.Value
-  @native def LLVMBuildSelect(builder: api.Builder, iff: api.Value, thn: api.Value, otherwise: api.Value, name: String): api.Value
-  @native def LLVMBuildLoad(builder: api.Builder, pointerVal: api.Value, name: String): api.Value
-  @native def LLVMBuildStore(builder: api.Builder, value: api.Value, pointerVal: api.Value): api.Value
-  @native def LLVMBuildMalloc(builder: api.Builder, typ: api.Type, name: String): api.Value
-  @native def LLVMBuildArrayMalloc(builder: api.Builder, typ: api.Type, v: api.Value, name: String): api.Value
-  @native def LLVMBuildAlloca(builder: api.Builder, typ: api.Type, name: String): api.Value
-  @native def LLVMBuildArrayAlloca(builder: api.Builder, typ: api.Type, v: api.Value, name: String): api.Value
-  @native def LLVMBuildFree(builder: api.Builder, ptr: api.Value): api.Value
-  @native def LLVMBuildIsNull(builder: api.Builder, ptr: api.Value, name: String): api.Value
-  @native def LLVMBuildIsNotNull(builder: api.Builder, ptr: api.Value, name: String): api.Value
-  @native def LLVMGetInsertBlock(builder: api.Builder): api.BasicBlock
-  @native def LLVMBuildStructGEP(builder: api.Builder, ptr: api.Value, idx: Int, name: String): api.Value
-  @native def LLVMBuildBitCast(builder: api.Builder, v: api.Value, destTyp: api.Type, name: String): api.Value
-  @native def LLVMBuildPtrToInt(builder: api.Builder, v: api.Value, destTyp: api.Type, name: String): api.Value
-  @native def LLVMBuildIntToPtr(builder: api.Builder, v: api.Value, destTyp: api.Type, name: String): api.Value
-  def LLVMBuildGEP: (Builder, Value, Array[Value], Int, String) => Value = nonNative.LLVMBuildGEP
-  def LLVMBuildGEP2: (Builder, Type, Value, Array[Value], Int, String) => Value = nonNative.LLVMBuildGEP2
-  def LLVMBuildInBoundsGEP: (Builder, Type, Value, Array[Value], Int, String) => Value = nonNative.LLVMBuildInBoundsGEP2
+    @native def LLVMBuildICmp(builder: api.Builder, predicate: Int, lhs: api.Value, rhs: api.Value, name: String): api.Value
+    @native def LLVMBuildFCmp(builder: api.Builder, predicate: Int, lhs: api.Value, rhs: api.Value, name: String): api.Value
+    @native def LLVMBuildPhi(builder: api.Builder, phiType: api.Type, name: String): api.Value
+    @native def LLVMBuildBr(builder: api.Builder, dest: api.BasicBlock): api.Value
+    @native def LLVMBuildCondBr(builder: api.Builder, cond: api.Value, thn: api.BasicBlock, otherwise: api.BasicBlock): api.Value
+    @native def LLVMBuildSelect(builder: api.Builder, iff: api.Value, thn: api.Value, otherwise: api.Value, name: String): api.Value
+    @native def LLVMBuildLoad(builder: api.Builder, pointerVal: api.Value, name: String): api.Value
+    @native def LLVMBuildStore(builder: api.Builder, value: api.Value, pointerVal: api.Value): api.Value
+    @native def LLVMBuildMalloc(builder: api.Builder, typ: api.Type, name: String): api.Value
+    @native def LLVMBuildArrayMalloc(builder: api.Builder, typ: api.Type, v: api.Value, name: String): api.Value
+    @native def LLVMBuildAlloca(builder: api.Builder, typ: api.Type, name: String): api.Value
+    @native def LLVMBuildArrayAlloca(builder: api.Builder, typ: api.Type, v: api.Value, name: String): api.Value
+    @native def LLVMBuildFree(builder: api.Builder, ptr: api.Value): api.Value
+    @native def LLVMBuildIsNull(builder: api.Builder, ptr: api.Value, name: String): api.Value
+    @native def LLVMBuildIsNotNull(builder: api.Builder, ptr: api.Value, name: String): api.Value
+    @native def LLVMGetInsertBlock(builder: api.Builder): api.BasicBlock
+    @native def LLVMBuildStructGEP(builder: api.Builder, ptr: api.Value, idx: Int, name: String): api.Value
+    @native def LLVMBuildBitCast(builder: api.Builder, v: api.Value, destTyp: api.Type, name: String): api.Value
+    @native def LLVMBuildPtrToInt(builder: api.Builder, v: api.Value, destTyp: api.Type, name: String): api.Value
+    @native def LLVMBuildIntToPtr(builder: api.Builder, v: api.Value, destTyp: api.Type, name: String): api.Value
+    def LLVMBuildGEP: (Builder, Value, Array[Value], Int, String) => Value = nonNative.LLVMBuildGEP
+    def LLVMBuildGEP2: (Builder, Type, Value, Array[Value], Int, String) => Value = nonNative.LLVMBuildGEP2
+    def LLVMBuildInBoundsGEP: (Builder, Type, Value, Array[Value], Int, String) => Value = nonNative.LLVMBuildInBoundsGEP2
 
   //  Actions
-  @native def LLVMAppendBasicBlockInContext(context: api.Context, function: api.Value, name: String): api.BasicBlock
-  @native def LLVMPositionBuilderAtEnd(builder: api.Builder, block: api.BasicBlock): Unit
+    @native def LLVMAppendBasicBlockInContext(context: api.Context, function: api.Value, name: String): api.BasicBlock
+    @native def LLVMPositionBuilderAtEnd(builder: api.Builder, block: api.BasicBlock): Unit
   // } Builder
+
+  // DWARF Builder {
+  @native def LLVMCreateDIBuilder(module: api.Module): api.DIBuilder
+  @native def LLVMDisposeDIBuilder(builder: api.DIBuilder): Unit
+  @native def LLVMDIBuilderFinalize(builder: api.DIBuilder): Unit
+//  @native def LLVMDIBuilderFinalizeSubprogram(builder: api.DIBuilder, subprogram: api.Metadata): Unit
+  @native def LLVMDIBuilderCreateCompileUnit(builder: api.DIBuilder, lang: Int, fileRef: api.Metadata, producer: String,
+                                             producerLen: Int, isOptimized: Int, flags: String, flagsLen: Int,
+                                             runtimeVer: Int, splitName: String, splitNameLen: Int, kind: Int,
+                                             DWOld: Int, splitDebugInlining: Int, debugInfoForProfiling: Int,
+                                             sysRoot: String, sysRootLen: Int, SDK: String, SDKLen: Int): api.Metadata
+  @native def LLVMDIBuilderCreateFile(builder: api.DIBuilder, fileName: String, fileNameLen: Int, directory: String, directoryLen: Int): api.Metadata
+  @native def LLVMDIBuilderCreateModule(builder: api.DIBuilder, parentScope: api.Metadata, name: String, nameLen: Int,
+                                         configMacros: String, configMacrosLen: Int, includePath: String,
+                                         includePathLen: Int, APINotesFile: String, APINotesFileLen: Int): api.Metadata
+  @native def LLVMDIBuilderCreateNameSpace(builder: api.DIBuilder, parentScope: api.Metadata, name: String,
+                                           nameLen: Int, exportSymbols: Int): api.Metadata
+  @native def LLVMDIBuilderCreateFunction(builder: api.DIBuilder, scope: api.Metadata, name: String, nameLen: Int,
+                                          linkageName: String, linkageNameLen: Int, file: api.Metadata, lineNo: Int,
+                                          ty: api.Metadata, isLocalToUnit: Int, isDefinition: Int, scopeLine: Int,
+                                          flags: Int /*LLVMDIFlag*/, isOptimized: Int): api.Metadata
+  @native def LLVMDIBuilderCreateLexicalBlock(builder: api.DIBuilder, scope: api.Metadata, file: api.Metadata, line: Int, column: Int): api.Metadata
+  @native def LLVMDIBuilderCreateLexicalBlockFile(builder: api.DIBuilder, scope: api.Metadata, file: api.Metadata, discriminator: Int): api.Metadata
+  @native def LLVMDIBuilderCreateImportedModuleFromNamespace(builder: api.DIBuilder, scope: api.Metadata, ns: api.Metadata, file: api.Metadata, line: Int): api.Metadata
+  def LLVMDIBuilderCreateImportedModuleFromAlias: (DIBuilder, Metadata, Metadata, Metadata, Int, Array[Metadata], Int) => Metadata = nonNative.LLVMDIBuilderCreateImportedModuleFromAlias
+  def LLVMDIBuilderCreateImportedModuleFromModule: (DIBuilder, Metadata, Metadata, Metadata, Int, Array[Metadata], Int) => Metadata = nonNative.LLVMDIBuilderCreateImportedModuleFromModule
+  def LLVMDIBuilderCreateImportedDeclaration: (DIBuilder, Metadata, Metadata, Metadata, Int, String, Int, Array[Metadata], Int) => Metadata = nonNative.LLVMDIBuilderCreateImportedDeclaration
+  @native def LLVMDIBuilderCreateDebugLocation(context: api.Context, line: Int, column: Int, scope: api.Metadata, inlinedAt: api.Metadata): api.Metadata
+
+  @native def LLVMDILocationGetLine(location: api.Metadata): Int
+  @native def LLVMDILocationGetColumn(location: api.Metadata): Int
+  @native def LLVMDILocationGetScope(location: api.Metadata): api.Metadata
+  @native def LLVMDILocationGetInlinedAt(location: api.Metadata): api.Metadata
+  @native def LLVMDIScopeGetFile(scope: api.Metadata): api.Metadata
+  @native def LLVMDIFileGetDirectory(file: api.Metadata, len: PointerByReference): String
+  @native def LLVMDIFileGetFilename(file: api.Metadata, len: PointerByReference): String
+  @native def LLVMDIFileGetSource(file: api.Metadata, len: PointerByReference): String
+
+  def LLVMDIBuilderGetOrCreateTypeArray: (DIBuilder, Array[Metadata], Int) => Metadata = nonNative.LLVMDIBuilderGetOrCreateTypeArray
+  def LLVMDIBuilderCreateSubroutineType: (DIBuilder, Metadata, Array[Metadata], Int, Int) => Metadata = nonNative.LLVMDIBuilderCreateSubroutineType
+  @native def LLVMDIBuilderCreateMacro(builder: api.DIBuilder, parentMacroFile: api.Metadata, line: Int, recordType: Int /*LLVMDWARFMacinfoRecordType*/, name: String, nameLen: Int, value: String, valueLen: Int): api.Metadata
+  @native def LLVMDIBuilderCreateTempMacroFile(builder: api.DIBuilder, parentMacroFile: api.Metadata, line: Int, file: api.Metadata): api.Metadata
+  @native def LLVMDIBuilderCreateEnumerator(builder: api.DIBuilder, name: String, nameLen: Int, value: Int, isUnsigned: Int): api.Metadata
+  def LLVMDIBuilderCreateEnumerationType: (DIBuilder, Metadata, String, Int, Metadata, Int, Int, Int, Array[Metadata], Int, Metadata) => Metadata = nonNative.LLVMDIBuilderCreateEnumerationType
+  def LLVMDIBuilderCreateUnionType: (DIBuilder, Metadata, String, Int, Metadata, Int, Int, Int, Int, Array[Metadata], Int, Int, String, Int) => Metadata = nonNative.LLVMDIBuilderCreateUnionType
+  def LLVMDIBuilderCreateArrayType: (DIBuilder, Int, Int, Metadata, Array[Metadata], Int) => Metadata = nonNative.LLVMDIBuilderCreateArrayType
+  def LLVMDIBuilderCreateVectorType: (DIBuilder, Int, Int, Metadata, Array[Metadata], Int) => Metadata = nonNative.LLVMDIBuilderCreateVectorType
+  @native def LLVMDIBuilderCreateUnspecifiedType(builder: api.DIBuilder, name: String, nameLen: Int): api.Metadata
+  @native def LLVMDIBuilderCreateBasicType(builder: api.DIBuilder, name: String, nameLen: Int, sizeInBits: Int, encoding: Int, flags: Int): api.Metadata
+  @native def LLVMDIBuilderCreatePointerType(builder: api.DIBuilder, pointeeTy: api.Metadata, sizeInBits: Int, alignInBits: Int, addressSpace: Int, name: String, nameLen: Int): api.Metadata
+  def LLVMDIBuilderCreateStructType: (DIBuilder, Metadata, String, Int, Metadata, Int, Int, Int, Int, Metadata, Array[Metadata], Int, Int, Metadata, String, Int) => Metadata = nonNative.LLVMDIBuilderCreateStructType
+  def LLVMDIBuilderCreateClassType: (DIBuilder, Metadata, String, Int, Metadata, Int, Int, Int, Int, Int, Metadata, Array[Metadata], Int, Metadata, Metadata, String, Int) => Metadata = nonNative.LLVMDIBuilderCreateClassType
+
+  @native def LLVMGetSubprogram(func: api.Value): api.Metadata
+  @native def LLVMSetSubprogram(func: api.Value, sp: api.Metadata): Unit
+  @native def LLVMDISubprogramGetLine(sp: api.Metadata): Int
+  @native def LLVMInstructionGetDebugLoc(inst: api.Value): api.Metadata
+  @native def LLVMInstructionSetDebugLoc(inst: api.Value, loc: api.Metadata): Unit
+  @native def LLVMGetMetadataKind(metadata: api.Metadata): Int
+
+  // } DWARF Builder
 
   // Functions
   def LLVMFunctionType: (Type, Array[Type], Int, Boolean) => FunctionType = nonNative.LLVMFunctionType
@@ -312,4 +377,19 @@ trait NonNativeApi extends Library {
   def LLVMBuildGEP(builder: api.Builder, ptr: api.Value, indices: Array[api.Value], numIndices: Int, name: String): api.Value
   def LLVMBuildGEP2(builder: api.Builder, typ: api.Type, ptr: api.Value, indices: Array[api.Value], numIndices: Int, name: String): api.Value
   def LLVMBuildInBoundsGEP2(builder: api.Builder, typ: api.Type, ptr: api.Value, indices: Array[api.Value], numIndices: Int, name: String): api.Value
+
+  def LLVMDIBuilderCreateImportedModuleFromAlias(builder: api.DIBuilder, scope: api.Metadata, importedEntity: api.Metadata, file: api.Metadata, line: Int, elements: Array[api.Metadata], numElements: Int): api.Metadata
+  def LLVMDIBuilderCreateImportedModuleFromModule(builder: api.DIBuilder, scope: api.Metadata, m: api.Metadata, file: api.Metadata, line: Int, elements: Array[api.Metadata], numElements: Int): api.Metadata
+  def LLVMDIBuilderCreateImportedDeclaration(builder: api.DIBuilder, scope: api.Metadata, decl: api.Metadata, file: api.Metadata, line: Int, name: String, nameLen: Int, elements: Array[api.Metadata], numElements: Int): api.Metadata
+
+  def LLVMDIBuilderGetOrCreateTypeArray(builder: api.DIBuilder, data: Array[api.Metadata], numElements: Int): api.Metadata
+  def LLVMDIBuilderCreateSubroutineType(builder: api.DIBuilder, file: api.Metadata, parameterTypes: Array[api.Metadata], numParameterTypes: Int, flags: Int): api.Metadata
+
+  def LLVMDIBuilderCreateEnumerationType(builder: api.DIBuilder, scope: api.Metadata, name: String, nameLen: Int, file: api.Metadata, line: Int, sizeInBits: Int, alignInBits: Int, elements: Array[api.Metadata], numElements: Int, classTy: api.Metadata): api.Metadata
+  def LLVMDIBuilderCreateUnionType(builder: api.DIBuilder, scope: api.Metadata, name: String, nameLen: Int, file: api.Metadata, line: Int, sizeInBits: Int, alignInBits: Int, flags: Int, elements: Array[api.Metadata], numElements: Int, runtimeLang: Int, uniqueId: String, uniqueIdLen: Int): api.Metadata
+  def LLVMDIBuilderCreateArrayType(builder: api.DIBuilder, size: Int, alignInBits: Int, ty: api.Metadata, subscripts: Array[api.Metadata], numSubscripts: Int): api.Metadata
+  def LLVMDIBuilderCreateVectorType(builder: api.DIBuilder, size: Int, alignInBits: Int, ty: api.Metadata, subscripts: Array[api.Metadata], numSubscripts: Int): api.Metadata
+
+  def LLVMDIBuilderCreateStructType(builder: api.DIBuilder, scope: api.Metadata, name: String, nameLen: Int, file: api.Metadata, line: Int, sizeInBits: Int, alignInBits: Int, flags: Int, derivedFrom: api.Metadata, elements: Array[api.Metadata], numElements: Int, runtimeLang: Int, vTableHolder: api.Metadata, uniqueId: String, uniqueIdLen: Int): api.Metadata
+  def LLVMDIBuilderCreateClassType(builder: api.DIBuilder, scope: api.Metadata, name: String, nameLen: Int, file: api.Metadata, line: Int, sizeInBits: Int, alignInBits: Int, offsetInBits: Int, flags: Int, derivedFrom: api.Metadata, elements: Array[api.Metadata], numElements: Int, vTableHolder: api.Metadata, templateParamsNode: api.Metadata, uniqueId: String, uniqueIdLen: Int): api.Metadata
 }

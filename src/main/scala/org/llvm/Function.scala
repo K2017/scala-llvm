@@ -1,6 +1,7 @@
 package org.llvm
 
 import org.llvm.CallingConvention.CallingConvention
+import org.llvm.dwarf.DISubprogram
 
 class FunctionType(llvmType: api.Type) extends Type(llvmType) {
   lazy val returnType: Type = Type.resolveLLVMType(api.LLVMGetReturnType(this))
@@ -32,6 +33,9 @@ class Function(val llvmValue: api.Value)(implicit val module: Module) extends Va
 
   def setCallingConvention(conv: CallingConvention): Unit = api.LLVMSetFunctionCallConv(this, conv.id)
   def getCallingConvention: CallingConvention = CallingConvention(api.LLVMGetFunctionCallConv(this))
+
+  def setSubprogram(subprogram: DISubprogram): Unit = api.LLVMSetSubprogram(this, subprogram)
+  def getSubprogram: DISubprogram = new DISubprogram(api.LLVMGetSubprogram(this))
 
   def build(bodyBuilder: Builder => Unit): this.type = {
     val builder = new Builder
