@@ -1,5 +1,6 @@
 package org.llvm
 
+import org.bytedeco.llvm.global.LLVM.LLVMInt32TypeInContext
 import org.scalatest.funsuite.AnyFunSuite
 
 class ContextTest extends AnyFunSuite {
@@ -13,7 +14,7 @@ class ContextTest extends AnyFunSuite {
 
   test("Module is kept across types") {
     Context.create().withScope { context =>
-      val int32Type = new Int32Type(api.LLVMInt32TypeInContext(context))
+      val int32Type = new Int32Type(LLVMInt32TypeInContext(context))
       assert(int32Type.context === context)
     }
   }
@@ -21,7 +22,7 @@ class ContextTest extends AnyFunSuite {
   test("Types can be cached") {
     Context.create().withScope { context =>
       val context = Context.create()
-      val int32Type = new Int32Type(api.LLVMInt32TypeInContext(context))
+      val int32Type = new Int32Type(LLVMInt32TypeInContext(context))
       assert(context.typeMap.size === 0)
 
       val resolvedInt32 = context.resolveType(int32Type.llvmType)
@@ -32,8 +33,8 @@ class ContextTest extends AnyFunSuite {
 
   test("Several instances of the same type map to the same object") {
     Context.create().withScope { context =>
-      val int32Type1 = new Int32Type(api.LLVMInt32TypeInContext(context))
-      val int32Type2 = new Int32Type(api.LLVMInt32TypeInContext(context))
+      val int32Type1 = new Int32Type(LLVMInt32TypeInContext(context))
+      val int32Type2 = new Int32Type(LLVMInt32TypeInContext(context))
       assert(int32Type1 == int32Type2)
 
       val resolved1 = context.resolveType(int32Type1.llvmType)

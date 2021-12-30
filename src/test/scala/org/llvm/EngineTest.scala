@@ -49,29 +49,29 @@ class EngineTest extends AnyFunSuite with BeforeAndAfter {
     }
     function
   }
-
-  test("A valid module can be compiled") {
-    generateValidFunc1
-    engine = module.compile()
-  }
-
-  test("An invalid module throws an exception") {
-    generateInvalidFunc1
-    intercept[InvalidModuleException](module.compile())
-  }
-
-  test("A function pointer can be retrieved") {
-    val func1 = generateValidFunc1
-    engine = module.compile()
-    engine.getCompiledFunction(func1)
-  }
-
-  test("A function can be executed") {
-    val func1 = generateValidFunc1
-    engine = module.compile()
-    val compiledFunction = engine.getCompiledFunction(func1)
-    val result = compiledFunction(2, 2)
-    assert(result.isInstanceOf[Int])
-    assert(result == 4)
-  }
+//
+//  test("A valid module can be compiled") {
+//    generateValidFunc1
+//    engine = module.compile()
+//  }
+//
+//  test("An invalid module throws an exception") {
+//    generateInvalidFunc1
+//    intercept[InvalidModuleException](module.compile())
+//  }
+//
+//  test("A function pointer can be retrieved") {
+//    val func1 = generateValidFunc1
+//    engine = module.compile()
+//    engine.getCompiledFunction(func1)
+//  }
+//
+//  test("A function can be executed") {
+//    val func1 = generateValidFunc1
+//    engine = module.compile()
+//    val compiledFunction = engine.getCompiledFunction(func1)
+//    val result = compiledFunction(2, 2)
+//    assert(result.isInstanceOf[Int])
+//    assert(result == 4)
+//  }
 }
