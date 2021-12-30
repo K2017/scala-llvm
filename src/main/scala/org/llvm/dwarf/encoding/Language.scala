@@ -40,6 +40,4 @@ object Language extends Enumeration {
   val Fortran08: Language = Value(0x0023)
   val RenderScript: Language = Value(0x0024)
   val BLISS: Language = Value(0x0025)
-  val lo_user: Language = Value(0x8000)
-  val hi_user: Language = Value(0xffff)
 }

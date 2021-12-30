@@ -1,7 +1,10 @@
 package org.llvm.dwarf
 
-import org.llvm.api
+import org.bytedeco.llvm.LLVM.LLVMMetadataRef
+import org.bytedeco.llvm.global.LLVM
 
-class DISubprogram(val llvmDISubprogram: api.Metadata) extends DILocalScope(llvmDISubprogram) {
+class DISubprogram(val llvmDISubprogram: LLVMMetadataRef) extends DILocalScope(llvmDISubprogram) {
+
+//  def finalizeSubprogram(): Unit = LLVMDIBuilderFinalizeSubprogram(this)
 
 }

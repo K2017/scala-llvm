@@ -1,7 +1,7 @@
 package org.llvm.dwarf
 
-import org.llvm.api
+import org.bytedeco.llvm.LLVM.LLVMMetadataRef
 
-class DICompileUnit(val llvmDICompileUnit: api.Metadata) extends DIScope(llvmDICompileUnit) {
+class DICompileUnit(val llvmDICompileUnit: LLVMMetadataRef) extends DIScope(llvmDICompileUnit) {
 
 }

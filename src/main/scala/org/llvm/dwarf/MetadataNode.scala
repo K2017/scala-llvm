@@ -1,7 +1,7 @@
 package org.llvm.dwarf
 
-import org.llvm.api
+import org.bytedeco.llvm.LLVM.LLVMMetadataRef
 
-class MetadataNode(val metadata: api.Metadata) extends Metadata(metadata) {
+class MetadataNode(val metadata: LLVMMetadataRef) extends Metadata(metadata) {
 
 }

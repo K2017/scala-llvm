@@ -21,6 +21,4 @@ object BaseType extends Enumeration {
   val UTF: BaseType = Value(0x10)
   val UCS: BaseType = Value(0x11)
   val ASCII: BaseType = Value(0x12)
-  val lo_user: BaseType = Value(0x80)
-  val hi_user: BaseType = Value(0xff)
 }

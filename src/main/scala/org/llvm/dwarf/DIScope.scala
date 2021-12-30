@@ -1,8 +1,9 @@
 package org.llvm.dwarf
 
-import org.llvm.{LLVMObjectWrapper, api}
+import org.bytedeco.llvm.LLVM.LLVMMetadataRef
 
-class DIScope(val scope: api.Metadata) extends DINode(scope) {
+class DIScope(val scope: LLVMMetadataRef) extends DINode(scope) {
+
 }
 
-class DILocalScope(val llvmDILocalScope: api.Metadata) extends DIScope(llvmDILocalScope)
+class DILocalScope(val llvmDILocalScope: LLVMMetadataRef) extends DIScope(llvmDILocalScope)

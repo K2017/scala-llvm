@@ -1,11 +1,11 @@
 package org.llvm.dwarf
 
-import org.llvm.api
+import org.bytedeco.llvm.LLVM.LLVMMetadataRef
 
-private[llvm] abstract class DILexicalBlockBase(val llvmDILexicalBlockBase: api.Metadata) extends DILocalScope(llvmDILexicalBlockBase) {
+private[llvm] abstract class DILexicalBlockBase(val llvmDILexicalBlockBase: LLVMMetadataRef) extends DILocalScope(llvmDILexicalBlockBase) {
 
 }
 
-class DILexicalBlock(val llvmDILexicalBlock: api.Metadata) extends DILexicalBlockBase(llvmDILexicalBlock) {}
-class DILexicalBlockFile(val llvmDILexicalBlockFile: api.Metadata) extends DILexicalBlockBase(llvmDILexicalBlockFile) {}
+class DILexicalBlock(val llvmDILexicalBlock: LLVMMetadataRef) extends DILexicalBlockBase(llvmDILexicalBlock) {}
+class DILexicalBlockFile(val llvmDILexicalBlockFile: LLVMMetadataRef) extends DILexicalBlockBase(llvmDILexicalBlockFile) {}
 

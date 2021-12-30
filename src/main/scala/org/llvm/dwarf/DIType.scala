@@ -1,18 +1,19 @@
 package org.llvm.dwarf
 
-import org.llvm.{LLVMObjectWrapper, api}
+import org.bytedeco.llvm.LLVM.LLVMMetadataRef
 
-import scala.language.implicitConversions
-
-abstract class DIType(val llvmDIType: api.Metadata) extends DIScope(llvmDIType) {
+abstract class DIType(val llvmDIType: LLVMMetadataRef) extends DIScope(llvmDIType) {
 
 }
 
-class DIBasicType(val llvmDIBasicType: api.Metadata) extends DIType(llvmDIBasicType) {
+class DIBasicType(val llvmDIBasicType: LLVMMetadataRef) extends DIType(llvmDIBasicType) {
 
 }
 
-class DICompositeType(val llvmDICompositeType: api.Metadata) extends DIType(llvmDICompositeType) {}
-class DIDerivedType(val llvmDIDerivedType: api.Metadata) extends DIType(llvmDIDerivedType) {}
-class DIStringType(val llvmDIStringType: api.Metadata) extends DIType(llvmDIStringType) {}
-class DISubroutineType(val llvmDISubroutineType: api.Metadata) extends DIType(llvmDISubroutineType) {}
+class DICompositeType(val llvmDICompositeType: LLVMMetadataRef) extends DIType(llvmDICompositeType) {}
+
+class DIDerivedType(val llvmDIDerivedType: LLVMMetadataRef) extends DIType(llvmDIDerivedType) {}
+
+class DIStringType(val llvmDIStringType: LLVMMetadataRef) extends DIType(llvmDIStringType) {}
+
+class DISubroutineType(val llvmDISubroutineType: LLVMMetadataRef) extends DIType(llvmDISubroutineType) {}

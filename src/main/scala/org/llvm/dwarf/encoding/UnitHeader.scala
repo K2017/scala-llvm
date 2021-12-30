@@ -9,6 +9,4 @@ object UnitHeader extends Enumeration {
   val skeleton: UnitHeader = Value(0x04)
   val split_compile: UnitHeader = Value(0x05)
   val split_type: UnitHeader = Value(0x06)
-  val lo_user: UnitHeader = Value(0x80)
-  val hi_user: UnitHeader = Value(0xff)
 }
