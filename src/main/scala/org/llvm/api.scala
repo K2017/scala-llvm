@@ -2,9 +2,8 @@ package org.llvm
 
 import com.sun.jna.ptr.PointerByReference
 import com.sun.jna.{Library, Native, Pointer}
-import dwarf.encoding._
-import org.llvm.dwarf.encoding.Language.Language
 
+@deprecated
 private[llvm] object api {
   type GenericObject = Pointer
   type Context = Pointer
@@ -23,33 +22,33 @@ private[llvm] object api {
   val libname = "LLVM-13"
 
   Native.register(libname)
-  // Enums
-  val LLVMIntEq = 32
-  val LLVMIntNE = 33
-  val LLVMIntSGT = 38
-  val LLVMIntSGE = 39
-  val LLVMIntSLT = 40
-  val LLVMIntSLE = 41
-  val LLVMRealOEQ = 1
-  val LLVMRealOGT = 2
-  val LLVMRealOGE = 3
-  val LLVMRealOLT = 4
-  val LLVMRealOLE = 5
-  val LLVMRealONE = 6
-  val LLVMRealORD = 7
-  val LLVMVoidTypeKind = 0
-  val LLVMHalfTypeKind = 1
-  val LLVMFloatTypeKind = 2
-  val LLVMDoubleTypeKind = 3
-  val LLVMX86_FP80TypeKind = 4
-  val LLVMFP128TypeKind = 5
-  val LLVMPPC_FP128TypeKind = 6
-  val LLVMLabelTypeKind = 7
-  val LLVMIntegerTypeKind = 8
-  val LLVMFunctionTypeKind = 9
-  val LLVMStructTypeKind = 10
-  val LLVMArrayTypeKind = 11
-  val LLVMPointerTypeKind = 12
+//  // Enums
+//  val LLVMIntEq = 32
+//  val LLVMIntNE = 33
+//  val LLVMIntSGT = 38
+//  val LLVMIntSGE = 39
+//  val LLVMIntSLT = 40
+//  val LLVMIntSLE = 41
+//  val LLVMRealOEQ = 1
+//  val LLVMRealOGT = 2
+//  val LLVMRealOGE = 3
+//  val LLVMRealOLT = 4
+//  val LLVMRealOLE = 5
+//  val LLVMRealONE = 6
+//  val LLVMRealORD = 7
+//  val LLVMVoidTypeKind = 0
+//  val LLVMHalfTypeKind = 1
+//  val LLVMFloatTypeKind = 2
+//  val LLVMDoubleTypeKind = 3
+//  val LLVMX86_FP80TypeKind = 4
+//  val LLVMFP128TypeKind = 5
+//  val LLVMPPC_FP128TypeKind = 6
+//  val LLVMLabelTypeKind = 7
+//  val LLVMIntegerTypeKind = 8
+//  val LLVMFunctionTypeKind = 9
+//  val LLVMStructTypeKind = 10
+//  val LLVMArrayTypeKind = 11
+//  val LLVMPointerTypeKind = 12
   // This has the functions that cannot be loaded using the @native method (for example, functions
   // that accept arrays as input parameters)
   private val nonNative = Native.load(libname, classOf[NonNativeApi])
@@ -361,7 +360,7 @@ private[llvm] object api {
   }
 
   // One-time initialization of LLVM
-  tools.LLVMToolsInitializeAll()
+//  tools.LLVMToolsInitializeAll()
 }
 
 trait NonNativeApi extends Library {
