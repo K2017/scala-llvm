@@ -1,8 +1,10 @@
 package org.llvm
 
+import org.bytedeco.llvm.LLVM.LLVMBasicBlockRef
+
 import scala.language.implicitConversions
 
-case class BasicBlock(llvmBasicBlock: api.BasicBlock) {
+case class BasicBlock(llvmBasicBlock: LLVMBasicBlockRef) {
   def build(bodyBuilder: => Unit)(implicit builder: Builder): this.type = {
     val previous = builder.currentBlock
     builder.insertAtEndOfBlock(this)
@@ -15,6 +17,6 @@ case class BasicBlock(llvmBasicBlock: api.BasicBlock) {
 }
 
 object BasicBlock {
-  implicit def basicBlockToLLVM(bb: BasicBlock): api.BasicBlock = bb.llvmBasicBlock
+  implicit def basicBlockToLLVM(bb: BasicBlock): LLVMBasicBlockRef = bb.llvmBasicBlock
 }
 

@@ -1,82 +1,91 @@
 package org.llvm
 
+import org.bytedeco.javacpp.{Pointer, PointerPointer}
+import org.bytedeco.llvm.LLVM.LLVMTypeRef
+import org.bytedeco.llvm.global.LLVM.{LLVMCountStructElementTypes, LLVMDisposeMessage, LLVMGetElementType, LLVMGetStructElementTypes, LLVMGetStructName, LLVMGetTypeContext, LLVMPointerType, LLVMPrintTypeToString, LLVMStructSetBody}
+
 import scala.language.implicitConversions
 
 class UnsupportedTypeException(what: String) extends LLVMException(what)
 
-abstract class Type(val llvmType: api.Type) extends LLVMObjectWrapper {
-  val llvmObject: api.GenericObject = llvmType
+abstract class Type(val llvmType: LLVMTypeRef) extends LLVMObjectWrapper {
+  val llvmObject: Pointer = llvmType
 
-  implicit lazy val context: Context = Context.resolveContext(api.LLVMGetTypeContext(this))
+  implicit lazy val context: Context = Context.resolveContext(LLVMGetTypeContext(this))
 
   override def toString: String = {
-    val ptr = api.LLVMPrintTypeToString(this)
-    val str = ptr.getString(0)
-    api.LLVMDisposeMessage(ptr)
+    val ptr = LLVMPrintTypeToString(this)
+    val str = ptr.getString
+    LLVMDisposeMessage(ptr)
     str
   }
 
-  def pointerTo: PointerType = new PointerType(api.LLVMPointerType(this, 0))
+  def pointerTo: PointerType = new PointerType(LLVMPointerType(this, 0))
+  def * : PointerType = pointerTo
 }
 
-abstract class PrimitiveType(llvmType: api.Type) extends Type(llvmType) {
+abstract class PrimitiveType(llvmType: LLVMTypeRef) extends Type(llvmType) {
   val primitiveType: Manifest[_]
 }
 
 object Type {
-  implicit def typeToLLVM(t: Type): api.Type = t.llvmType
+  implicit def typeToLLVM(t: Type): t.llvmType.type = t.llvmType
 
-  private[llvm] def resolveLLVMType(theType: api.Type)(implicit context: Context): Type = context.resolveType(theType)
+  private[llvm] def resolveLLVMType(theType: LLVMTypeRef)(implicit context: Context): Type = context.resolveType(theType)
 }
 
-class VoidType(llvmType: api.Type) extends PrimitiveType(llvmType) {
+class VoidType(llvmType: LLVMTypeRef) extends PrimitiveType(llvmType) {
   val primitiveType: Manifest[Unit] = manifest[Unit]
 }
 
-class FloatType(llvmType: api.Type) extends PrimitiveType(llvmType) {
+class FloatType(llvmType: LLVMTypeRef) extends PrimitiveType(llvmType) {
   val primitiveType: Manifest[Float] = manifest[Float]
 }
 
-class Int32Type(llvmType: api.Type) extends PrimitiveType(llvmType) {
+class Int32Type(llvmType: LLVMTypeRef) extends PrimitiveType(llvmType) {
   val primitiveType: Manifest[Int] = manifest[Int]
 }
 
-class Int8Type(llvmType: api.Type) extends PrimitiveType(llvmType) {
+class Int8Type(llvmType: LLVMTypeRef) extends PrimitiveType(llvmType) {
   val primitiveType: Manifest[Char] = manifest[Char]
 }
 
-class Int1Type(llvmType: api.Type) extends PrimitiveType(llvmType) {
+class Int1Type(llvmType: LLVMTypeRef) extends PrimitiveType(llvmType) {
   val primitiveType: Manifest[Boolean] = manifest[Boolean]
 }
 
 // You should *not* instantiate this class directly
-private[llvm] class UnknownType(llvmType: api.Type) extends Type(llvmType)
+private[llvm] class UnknownType(llvmType: LLVMTypeRef) extends Type(llvmType)
 
-class StructType(llvmType: api.Type) extends Type(llvmType) {
+class StructType(llvmType: LLVMTypeRef) extends Type(llvmType) {
   def elements: Array[Type] = {
-    val numElements = api.LLVMCountStructElementTypes(this)
-    val llvmTypes = new Array[api.Type](numElements)
-    api.LLVMGetStructElementTypes(this, llvmTypes)
-    llvmTypes.map { Type.resolveLLVMType }
+    val numElements = LLVMCountStructElementTypes(this)
+    val llvmTypes = new PointerPointer[LLVMTypeRef](numElements)
+    LLVMGetStructElementTypes(this, llvmTypes)
+    (for (i <- 0 until numElements) yield Type.resolveLLVMType(llvmTypes.get(classOf[LLVMTypeRef], i))).toArray
   }
 
-  def name: String = api.LLVMGetStructName(this)
+  def name: String = {
+    val ptr = LLVMGetStructName(this)
+    ptr.getString
+  }
 }
 
-class PartialStructType(llvmType: api.Type) extends StructType(llvmType) {
+class PartialStructType(llvmType: LLVMTypeRef) extends StructType(llvmType) {
   def setBody(elementTypes: Seq[Type], packed: Boolean = false): StructType = {
     val typesArray = elementTypes.toArray.map {
       _.llvmType
     }
-    api.LLVMStructSetBody(this, typesArray, typesArray.length, packed)
+    val types = new PointerPointer[LLVMTypeRef](typesArray: _*)
+    LLVMStructSetBody(this, types, typesArray.length, packed)
     this
   }
 }
 
-class PointerType(llvmType: api.Type) extends Type(llvmType) {
-  lazy val pointedType: Type = Type.resolveLLVMType(api.LLVMGetElementType(this))
+class PointerType(llvmType: LLVMTypeRef) extends Type(llvmType) {
+  lazy val pointedType: Type = Type.resolveLLVMType(LLVMGetElementType(this))
 }
 
-class ArrayType(llvmType: api.Type) extends Type(llvmType) {
+class ArrayType(llvmType: LLVMTypeRef) extends Type(llvmType) {
 
 }

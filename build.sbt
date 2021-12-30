@@ -5,12 +5,13 @@ name := "scala-llvm"
 version := "1.2"
 
 scalaVersion := "2.13.6"
-
+resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
 libraryDependencies += "org.scala-lang" % "scala-reflect" % "2.13.6"
 libraryDependencies += "net.java.dev.jna" % "jna" % "5.9.0" % "provided"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.9" % "test"
-libraryDependencies += "org.bytedeco" % ("llvm" + "-platform") % ("12.0.1" + "-1.5.6")
+libraryDependencies += "org.bytedeco" % ("llvm" + "-platform") % ("13.0.0" + "-1.5.7-SNAPSHOT")
+
 
 // Compiles the CPP wrapper library
 Compile / compile := {((Compile / compile).value, sourceDirectory.value, target.value, (Compile / classDirectory).value) match {
