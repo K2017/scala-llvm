@@ -7,7 +7,7 @@ import org.llvm.dwarf.EmissionKind.EmissionKind
 import org.llvm.dwarf.Flag.Flag
 import org.llvm.dwarf.encoding.BaseType.BaseType
 import org.llvm.dwarf.encoding.Language.Language
-import org.llvm.dwarf.encoding.Tag
+import org.llvm.dwarf.encoding.Tag.Tag
 import org.llvm.{BasicBlock, Context, Disposable, Instruction, Module, StructType, TargetData, Type, Value, booleanToCInt}
 
 import scala.language.implicitConversions
@@ -25,46 +25,45 @@ class DIBuilder(val llvmDIBuilder: LLVMDIBuilderRef, implicit val module: Module
 
   def createPointerType(name: String, from: DIType)(implicit dl: TargetData): DIDerivedType = {
     val sizeInBits = dl.getPtrSizeInBits
-    val alignInBits = dl.getPtrAlignInBits
-    new DIDerivedType(LLVMDIBuilderCreatePointerType(this, from, sizeInBits, alignInBits, 0, name, name.length))
+    new DIDerivedType(LLVMDIBuilderCreatePointerType(this, from, sizeInBits, 0, 0, name, name.length))
   }
 
   def createNullType() = new DIBasicType(LLVMDIBuilderCreateNullPtrType(this))
 
-  def createReplaceableForwardDeclaration(name: String, scope: DIScope, file: DIFile, line: Int) =
-    new DICompositeType(LLVMDIBuilderCreateReplaceableCompositeType(this, Tag.structure_type.id, name, name.length, scope, file, line, 0, 0, 0, Flag.Zero.id, name, name.length))
+  def createReplaceableForwardDeclaration(name: String, scope: DIScope, file: DIFile, tag: Tag, line: Int) =
+    new DICompositeType(LLVMDIBuilderCreateReplaceableCompositeType(this, tag.id, name, name.length, scope, file, line, 0, 0, 0, Flag.Zero.id, name, name.length))
 
   def createClassType(name: String, tp: StructType, vTable: Option[DIType], scope: DIScope, file: DIFile, line: Int, flags: Flag, elements: Array[DINode])(implicit dl: TargetData): DICompositeType = {
     val sizeInBits = dl.getTypeSizeInBits(tp)
-    val alignInBits = dl.getPreferredAlignInBits(tp)
-    val offsetInBits = dl.getOffsetOfElement(tp, 0)
     new DICompositeType(
-      LLVMDIBuilderCreateClassType(this, scope, name, name.length, file, line, sizeInBits, alignInBits, offsetInBits, flags.id, null, new PointerPointer(elements.map(_.llvmMetadata): _*), elements.length, vTable match { case Some(v) => v; case None => null }, null, name, name.length)
+      LLVMDIBuilderCreateClassType(this, null, name, name.length, file, line, sizeInBits, 0, 0, flags.id, null, new PointerPointer(elements.map(_.llvmMetadata): _*), elements.length, vTable match { case Some(v) => v; case None => null }, null, name, name.length)
     )
   }
 
-  def createMemberType(name: String, tp: Type, idx: Int, parent: StructType, parentTp: DIType, line: Int, scope: DIScope, file: DIFile)(implicit dl: TargetData): DIDerivedType = new DIDerivedType({
+  def createMemberType(name: String, tp: Type, diType: DIType, idx: Int, parent: StructType, line: Int, scope: DIScope, file: DIFile, flags: Flag = Flag.Zero)(implicit dl: TargetData): DIDerivedType = new DIDerivedType({
     val sizeInBits = dl.getTypeSizeInBits(tp)
-    val alignInBits = dl.getPreferredAlignInBits(tp)
-    val offsetInBits = dl.getOffsetOfElement(parent, idx)
-    LLVMDIBuilderCreateMemberType(this, scope, name, name.length, file, line, sizeInBits, alignInBits, offsetInBits, Flag.Zero.id, parentTp)
+    val offsetInBits = dl.getOffsetOfElement(parent, idx) * 8
+    LLVMDIBuilderCreateMemberType(this, scope, name, name.length, file, line, sizeInBits, 0, offsetInBits, flags.id, diType)
   })
 
   def createDerivedClassType(name: String, tp: StructType, vTable: Option[DIType], scope: DIScope, file: DIFile, derivedFrom: DIType, line: Int, flags: Flag, elements: Array[DINode])(implicit dl: TargetData): DICompositeType = {
     val sizeInBits = dl.getTypeSizeInBits(tp)
-    val alignInBits = dl.getPreferredAlignInBits(tp)
-    val offsetInBits = dl.getOffsetOfElement(tp, 0)
     new DICompositeType(
-      LLVMDIBuilderCreateClassType(this, scope, name, name.length, file, line, sizeInBits, alignInBits, offsetInBits, flags.id, derivedFrom, new PointerPointer(elements.map(_.llvmMetadata): _*), elements.length, vTable match { case Some(v) => v; case None => null }, null, name, name.length)
+      LLVMDIBuilderCreateClassType(this, scope, name, name.length, file, line, sizeInBits, 0, 0, flags.id, derivedFrom, new PointerPointer(elements.map(_.llvmMetadata): _*), elements.length, vTable match { case Some(v) => v; case None => null }, null, name, name.length)
     )
   }
+
+  def createStructType(name: String, tp: StructType, elements: Array[DINode], scope: DIScope, file: DIFile, line: Int)(implicit dl: TargetData) = new DIDerivedType({
+    val sizeInBits = dl.getTypeSizeInBits(tp)
+    LLVMDIBuilderCreateStructType(this, scope, name, name.length, file, line, sizeInBits, 0, Flag.Zero.id, null, new PointerPointer(elements.map(_.llvmMetadata): _*), elements.length, 0, null, name, name.length)
+  })
 
   def createInheritance(tp: DIType, base: DIType, flags: Flag = Flag.Zero) = new DIDerivedType(
     LLVMDIBuilderCreateInheritance(this, tp, base, 0, 0, flags.id)
   )
 
-  def createParameterVariable(name: String, tp: DIType, argIdx: Int, line: Int, file: DIFile, scope: DILocalScope) = new DILocalVariable(
-    LLVMDIBuilderCreateParameterVariable(this, scope, name, name.length, argIdx, file, line, tp, true, Flag.Zero.id)
+  def createParameterVariable(name: String, tp: DIType, argIdx: Int, line: Int, file: DIFile, scope: DILocalScope, flags: Flag = Flag.Zero) = new DILocalVariable(
+    LLVMDIBuilderCreateParameterVariable(this, scope, name, name.length, argIdx, file, line, tp, true, flags.id)
   )
 
   def createLocalVariable(name: String, tp: DIType, line: Int, file: DIFile, scope: DILocalScope) = new DILocalVariable(
@@ -99,7 +98,7 @@ class DIBuilder(val llvmDIBuilder: LLVMDIBuilderRef, implicit val module: Module
       case Some(value) => value
     }))
 
-  def createExpression(): DIExpression = new DIExpression(LLVMDIBuilderCreateExpression(this, Array[Long](), 0))
+  def createExpression(ops: Long*): DIExpression = new DIExpression(LLVMDIBuilderCreateExpression(this, ops.toArray, ops.length))
 
   def createLexicalBlock(parent: DIScope, file: DIFile, line: Int, column: Int) = new DILexicalBlock(
     LLVMDIBuilderCreateLexicalBlock(this, parent, file, line, column)
@@ -111,10 +110,10 @@ class DIBuilder(val llvmDIBuilder: LLVMDIBuilderRef, implicit val module: Module
   def insertDeclare(alloc: Value, dbgInfo: Metadata, loc: DILocation, instr: BasicBlock, expr: DIExpression): Instruction =
     new Instruction(LLVMDIBuilderInsertDeclareAtEnd(this, alloc, dbgInfo, expr, loc, instr))
 
-  def insertDbg(value: Value, dbgInfo: Metadata, loc: DILocation, instr: Instruction, expr: DIExpression) =
+  def insertValue(value: Value, dbgInfo: Metadata, loc: DILocation, instr: Instruction, expr: DIExpression) =
     new Instruction(LLVMDIBuilderInsertDbgValueBefore(this, value, dbgInfo, expr, loc, instr))
 
-  def insertDbg(value: Value, dbgInfo: Metadata, loc: DILocation, instr: BasicBlock, expr: DIExpression) =
+  def insertValue(value: Value, dbgInfo: Metadata, loc: DILocation, instr: BasicBlock, expr: DIExpression) =
     new Instruction(LLVMDIBuilderInsertDbgValueAtEnd(this, value, dbgInfo, expr, loc, instr))
 
   def finalizeBuilder(): Unit = LLVMDIBuilderFinalize(this)
