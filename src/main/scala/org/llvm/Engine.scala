@@ -10,6 +10,7 @@ case class BitCodeWriterException(what: String) extends LLVMException(what)
 case class ObjectCodeWriterException(what: String) extends LLVMException(what)
 case class EngineCompilationException(what: String) extends LLVMException(what)
 case class InvalidFunctionException(what: String) extends LLVMException(what)
+case class InvalidTypeException(what: String) extends LLVMException(what)
 
 class Engine(val llvmEngine: LLVMExecutionEngineRef) extends Disposable {
   protected def doDispose(): Unit = LLVMDisposeExecutionEngine(this)
