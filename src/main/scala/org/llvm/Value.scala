@@ -42,7 +42,21 @@ trait Value extends LLVMObjectWrapper {
 
   def setName(name: String): this.type = { LLVMSetValueName(this, name); this }
   def as(name: String): this.type = setName(name)
-  def ->(tpe: Type)(implicit builder: Builder): SSAValue =  builder.bitcast(this, tpe)
+  def get(offset: Value)(implicit builder: Builder): SSAValue = {
+    getType match {
+      case tp@PointerType(_) =>
+        builder.deref(this, tp.pointedType, offset)
+      case _ => throw InvalidTypeException("Cannot dereference a non-pointer value")
+    }
+  }
+
+  def store(value: Value)(implicit builder: Builder): Instruction = {
+    getType match {
+      case tp@PointerType(_) if tp.pointedType == value.getType =>
+        builder.store(this, value)
+      case _ => throw InvalidTypeException(s"Cannot store value of type ${value.getType} into variable of type $getType")
+    }
+  }
 
   def setLinkage(linkage: Linkage): Unit = LLVMSetLinkage(this, linkage.id)
   def setVisibility(visibility: Visibility): Unit = LLVMSetVisibility(this, visibility.id)
