@@ -20,8 +20,9 @@ abstract class Type(val llvmType: LLVMTypeRef) extends LLVMObjectWrapper {
     str
   }
 
-  def pointerTo: PointerType = new PointerType(LLVMPointerType(this, 0))
+  def pointerTo: PointerType = PointerType(LLVMPointerType(this, 0))
   def * : PointerType = pointerTo
+  def apply(value: Value)(implicit builder: Builder): SSAValue = builder.bitcast(value, this)
 }
 
 abstract class PrimitiveType(llvmType: LLVMTypeRef) extends Type(llvmType) {
@@ -82,7 +83,7 @@ class PartialStructType(llvmType: LLVMTypeRef) extends StructType(llvmType) {
   }
 }
 
-class PointerType(llvmType: LLVMTypeRef) extends Type(llvmType) {
+case class PointerType(override val llvmType: LLVMTypeRef) extends Type(llvmType) {
   lazy val pointedType: Type = Type.resolveLLVMType(LLVMGetElementType(this))
 }
 
