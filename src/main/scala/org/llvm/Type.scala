@@ -22,6 +22,8 @@ abstract class Type(val llvmType: LLVMTypeRef) extends LLVMObjectWrapper {
 
   def pointerTo: PointerType = PointerType(LLVMPointerType(this, 0))
   def * : PointerType = pointerTo
+  def ** : PointerType = pointerTo.*
+  def *** : PointerType = pointerTo.**
   def apply(value: Value)(implicit builder: Builder): SSAValue = builder.bitcast(value, this)
 }
 

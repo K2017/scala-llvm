@@ -101,7 +101,8 @@ class Module(val llvmModule: LLVMModuleRef, val targetMachine: Option[TargetMach
   }
   def addGlobalConstant(init: GlobalVariable, name: String, linkage: Linkage = Linkage.External): GlobalVariable =
     addGlobalWithInit(init, name, constant = true, linkage)
-
+  def addGlobalStringConstant(value: String, name: String, linkage: Linkage = Linkage.External): GlobalVariable =
+    addGlobalConstant(createGlobalString(value), name, linkage)
 
   def setSourceFile(name: String): Unit = LLVMSetSourceFileName(this, name, name.length)
 
