@@ -68,7 +68,7 @@ class Builder(private implicit val module: Module) extends Disposable {
   def sizeof(t: Type): SSAValue = {
     val tNull = nullLit(t.*)
     val size = new SSAValue(
-      LLVMBuildGEP2(this, t, tNull, Value.from(1).llvmValue, 1, new BytePointer(NO_NAME))
+      LLVMBuildGEP2(this, t, tNull, Value.from(1), 1, new BytePointer(NO_NAME))
     )
     ptrToInt(size, module.context.Types.i32)
   }
