@@ -2,7 +2,7 @@ name := "scala-llvm"
 
 version := "1.2"
 
-val llvmVersion = "13.0.0"
+val llvmVersion = "13.0.1"
 
 scalaVersion := "2.13.6"
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
@@ -10,7 +10,7 @@ resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repos
 libraryDependencies += "org.scala-lang" % "scala-reflect" % "2.13.6"
 libraryDependencies += "net.java.dev.jna" % "jna" % "5.9.0" % "provided"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.9" % "test"
-libraryDependencies += "org.bytedeco" % ("llvm" + "-platform") % (llvmVersion + "-1.5.7-SNAPSHOT")
+libraryDependencies += "org.bytedeco" % ("llvm" + "-platform") % (llvmVersion + "-1.5.7")
 
 Compile / sourceGenerators += Def.task {
 
